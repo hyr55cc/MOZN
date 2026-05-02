@@ -774,11 +774,10 @@
                 // Load saved theme
                 loadTheme();
 
-                // Start after 3 seconds - create bots only if needed
+                // Start after 3 seconds - check Firebase first
                 setTimeout(function() {
-                    createBots(); // Create only if < 10 bots exist
+                    checkAndCreateBots(); // Check Firebase then create if needed
                     startBotSimulation(); // Update existing bots only
-                    showToast('✅ المنافسة بدأت! (10 بوتات + مستخدمين حقيقيين)');
                 }, 3000);
             } catch(e) {
                 console.error('Firebase init error:', e);
