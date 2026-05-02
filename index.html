@@ -550,6 +550,26 @@
         ];
 
         // ============================================
+        // BOT CONFIGURATION
+        // ============================================
+        var botConfigs = [
+            { name: 'سالم', level: 'high', minCount: 400, maxCount: 600, speed: 3000 },
+            { name: 'نورة', level: 'high', minCount: 400, maxCount: 600, speed: 3500 },
+            { name: 'مبارك', level: 'normal', minCount: 150, maxCount: 300, speed: 5000 },
+            { name: 'فاطمة', level: 'normal', minCount: 150, maxCount: 300, speed: 5500 },
+            { name: 'عبدالرحمن', level: 'normal', minCount: 150, maxCount: 300, speed: 6000 },
+            { name: 'سارة', level: 'normal', minCount: 150, maxCount: 300, speed: 4500 },
+            { name: 'فيصل', level: 'normal', minCount: 150, maxCount: 300, speed: 7000 },
+            { name: 'مريم', level: 'normal', minCount: 150, maxCount: 300, speed: 6500 },
+            { name: 'بدر', level: 'medium', minCount: 50, maxCount: 100, speed: 8000 },
+            { name: 'لولوة', level: 'medium', minCount: 50, maxCount: 100, speed: 9000 },
+            { name: 'خالد', level: 'low', minCount: 10, maxCount: 30, speed: 12000 },
+            { name: 'هدى', level: 'low', minCount: 10, maxCount: 30, speed: 15000 }
+        ];
+        var botInterval = null;
+        var bots = [];
+
+        // ============================================
         // INITIALIZATION
         // ============================================
         function init() {
@@ -658,6 +678,126 @@
                 el.className = 'connection-status connection-offline';
                 text.textContent = 'غير متصل';
             }
+        }
+
+        // ============================================
+        // BOT MANAGEMENT
+        // ============================================
+        function createBots() {
+            if (!db) return;
+
+            // Check if bots already exist
+            db.ref('users').once('value', function(snapshot) {
+                var data = snapshot.val() || {};
+                var allKeys = Object.keys(data);
+                var existingBots = allKeys.filter(function(key) {
+                    return key.startsWith('bot_');
+                });
+
+                console.log('Existing bots:', existingBots.length);
+
+                if (existingBots.length >= 12) {
+                    // Load existing bots into local array
+                    existingBots.forEach(function(key) {
+                        var bot = data[key];
+                        var exists = false;
+                        for (var j = 0; j < users.length; j++) {
+                            if (users[j].id === bot.id) {
+                                exists = true;
+                                break;
+                            }
+                        }
+                        if (!exists) users.push(bot);
+                    });
+
+                    console.log('Loaded existing bots');
+                    startBotSimulation();
+                    return;
+                }
+
+                // Remove old bots from Firebase
+                existingBots.forEach(function(key) {
+                    db.ref('users/' + key).remove();
+                });
+
+                // Remove old bots from local array
+                users = users.filter(function(u) { return !u.id || !u.id.startsWith('bot_'); });
+
+                // Create 12 bots
+                var now = Date.now();
+                for (var i = 0; i < botConfigs.length; i++) {
+                    var config = botConfigs[i];
+                    var initialCount = Math.floor(Math.random() * (config.maxCount - config.minCount + 1)) + config.minCount;
+
+                    var bot = {
+                        id: 'bot_' + i + '_' + now,
+                        name: config.name,
+                        today_count: initialCount,
+                        total_count: initialCount * 10,
+                        streak: Math.floor(Math.random() * 20) + 1,
+                        trend: 'up',
+                        level: config.level,
+                        isBot: true,
+                        timestamp: firebase.database.ServerValue.TIMESTAMP
+                    };
+
+                    users.push(bot);
+                    db.ref('users/' + bot.id).set(bot);
+                }
+
+                console.log('Created 12 new bots');
+                showToast('🤖 12 بوت جاهزين للمنافسة!');
+                startBotSimulation();
+            });
+        }
+
+        function startBotSimulation() {
+            if (botInterval) clearInterval(botInterval);
+
+            // Create a single interval that updates all bots
+            botInterval = setInterval(function() {
+                if (!isOnline || !db) return;
+
+                // Update random bot
+                var botIndex = Math.floor(Math.random() * botConfigs.length);
+                var config = botConfigs[botIndex];
+
+                // Find bot in users array
+                var bot = null;
+                for (var i = 0; i < users.length; i++) {
+                    if (users[i].id && users[i].id.startsWith('bot_' + botIndex + '_')) {
+                        bot = users[i];
+                        break;
+                    }
+                }
+
+                if (!bot) return;
+
+                // Add tasbih based on level
+                var addAmount = 1;
+                if (config.level === 'high') addAmount = Math.floor(Math.random() * 3) + 2;
+                else if (config.level === 'normal') addAmount = Math.floor(Math.random() * 2) + 1;
+                else if (config.level === 'medium') addAmount = 1;
+                else if (config.level === 'low') addAmount = Math.random() > 0.7 ? 1 : 0;
+
+                if (addAmount > 0) {
+                    bot.today_count = (bot.today_count || 0) + addAmount;
+                    bot.total_count = (bot.total_count || 0) + addAmount;
+                    bot.trend = 'up';
+
+                    // Update Firebase
+                    db.ref('users/' + bot.id).update({
+                        today_count: bot.today_count,
+                        total_count: bot.total_count,
+                        trend: bot.trend
+                    });
+
+                    // Show notification occasionally for high-level bots
+                    if (config.level === 'high' && Math.random() > 0.8) {
+                        showToast('⚡ ' + bot.name + ' يستغفر بقوة! (' + bot.today_count + ')');
+                    }
+                }
+            }, 2000); // Update every 2 seconds
         }
 
         // ============================================
