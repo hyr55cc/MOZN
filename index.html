@@ -9,16 +9,11 @@
     <meta name="apple-mobile-web-app-title" content="تسبيح">
     <meta name="description" content="تطبيق تفاعلي للاستغفار والمنافسة بين الأصدقاء">
 
-    <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
-
-    <!-- Apple Touch Icons -->
-    <link rel="apple-touch-icon" href="icon-72.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
-
+    <link rel="apple-touch-icon" href="icon-192.png">
     <title>تسبيح - تطبيق الاستغفار التفاعلي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #1a5f4a;
@@ -29,6 +24,7 @@
             --text-primary: #e8f5e9;
             --text-secondary: #a8c5b5;
             --text-muted: #6b9b82;
+            --danger: #f44336;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html { height: 100%; overflow: hidden; }
@@ -339,41 +335,43 @@
             cursor: pointer;
             touch-action: manipulation;
         }
-        .install-prompt {
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .connection-status {
             position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-card);
-            border: 1px solid var(--accent);
-            border-radius: 16px;
-            padding: 15px 20px;
-            z-index: 10001;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-            max-width: 90%;
-            width: 350px;
-        }
-        .install-prompt.show { display: flex; }
-        .install-btn {
-            background: var(--accent);
-            color: var(--bg-dark);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
             font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .dismiss-btn {
-            background: transparent;
-            color: var(--text-muted);
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
+        .connection-online {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid rgba(76, 175, 80, 0.3);
         }
+        .connection-offline {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .vibration-btn {
             position: fixed;
             bottom: 20px;
@@ -393,10 +391,16 @@
         }
         .vibration-btn.active { color: var(--accent); border-color: var(--accent); }
     </style>
+<base target="_blank">
 </head>
 <body>
     <div class="particles" id="particles"></div>
     <div class="toast-container" id="toastContainer"></div>
+
+    <div class="connection-status connection-offline" id="connectionStatus">
+        <span class="loading-spinner" id="statusSpinner"></span>
+        <span id="statusText">جاري الاتصال...</span>
+    </div>
 
     <div class="modal-overlay" id="setupModal">
         <div class="modal">
@@ -409,13 +413,7 @@
         </div>
     </div>
 
-    <div class="install-prompt" id="installPrompt">
-        <span>📲 ثبت التطبيق على شاشتك الرئيسية</span>
-        <button class="install-btn" id="installBtn">تثبيت</button>
-        <button class="dismiss-btn" id="dismissBtn">✕</button>
-    </div>
-
-    <button class="vibration-btn" id="vibrationBtn">📳</button>
+    <button class="vibration-btn active" id="vibrationBtn">📳</button>
 
     <header class="header">
         <h1>تَسْبِيح</h1>
@@ -437,7 +435,7 @@
                 <div class="stat-label">🏆 الإجمالي</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="globalCount">12,847</div>
+                <div class="stat-value" id="globalCount">0</div>
                 <div class="stat-label">🌍 العالم</div>
             </div>
         </div>
@@ -482,16 +480,24 @@
         </div>
 
         <div class="leaderboard-section">
-            <h2 class="section-title">🏆 لوحة المتصدرين</h2>
+            <h2 class="section-title">🏆 لوحة المتصدرين - مباشر</h2>
             <div class="leaderboard-grid" id="leaderboard"></div>
         </div>
     </div>
 
     <script>
+        // ============================================
+        // CONFIGURATION - Replace with your Supabase credentials
+        // ============================================
+        var SUPABASE_URL = 'sb_publishable_f3sL44wcb3605-QKHeI5IA_PFGhhgQl';
+        var SUPABASE_ANON_KEY = 'sb_secret_XYbI14jm6zNcjpH25o3o-w_pN6XWbZT';
+
+        var supabase = null;
         var currentUser = null;
         var users = [];
-        var deferredPrompt = null;
         var vibrationEnabled = true;
+        var isOnline = false;
+        var realtimeChannel = null;
 
         var levels = [
             { name: 'مبتدئ', min: 0 },
@@ -503,40 +509,39 @@
             { name: 'صالح', min: 50000 },
             { name: 'مُتقِي', min: 100000 }
         ];
-        var arabicNames = ['أحمد','محمد','علي','عمر','خالد','فهد','سعد','ناصر','عبدالله','سلطان','يوسف','إبراهيم','نواف','بندر','تركي'];
 
-        // Register Service Worker
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js')
-                    .then(function(registration) {
-                        console.log('SW registered');
-                    })
-                    .catch(function(error) {
-                        console.log('SW registration failed');
-                    });
-            });
-        }
-
-        // Install Prompt
-        window.addEventListener('beforeinstallprompt', function(e) {
-            e.preventDefault();
-            deferredPrompt = e;
-            setTimeout(function() {
-                document.getElementById('installPrompt').classList.add('show');
-            }, 3000);
-        });
-
+        // ============================================
+        // INITIALIZATION
+        // ============================================
         function init() {
             createParticles();
-            loadData();
 
-            var modal = document.getElementById('setupModal');
+            // Check if Supabase is configured
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL') {
+                showToast('⚠️ يرجى إعداد Supabase أولاً - انظر التعليمات');
+                document.getElementById('statusText').textContent = 'غير مُعد';
+                document.getElementById('statusSpinner').style.display = 'none';
+                setupOfflineMode();
+                return;
+            }
+
+            // Initialize Supabase
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                connectToDatabase();
+            } catch(e) {
+                console.error('Supabase init error:', e);
+                showToast('❌ خطأ في الاتصال');
+                setupOfflineMode();
+            }
+
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
             var startBtn = document.getElementById('startBtn');
             var mainBtn = document.getElementById('mainBtn');
             var nameInput = document.getElementById('userNameInput');
-            var installBtn = document.getElementById('installBtn');
-            var dismissBtn = document.getElementById('dismissBtn');
             var vibrationBtn = document.getElementById('vibrationBtn');
 
             startBtn.addEventListener('click', setupUser);
@@ -545,20 +550,6 @@
 
             nameInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') setupUser();
-            });
-
-            installBtn.addEventListener('click', function() {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    deferredPrompt.userChoice.then(function() {
-                        document.getElementById('installPrompt').classList.remove('show');
-                        deferredPrompt = null;
-                    });
-                }
-            });
-
-            dismissBtn.addEventListener('click', function() {
-                document.getElementById('installPrompt').classList.remove('show');
             });
 
             vibrationBtn.addEventListener('click', function() {
@@ -573,59 +564,90 @@
                     addTasbih();
                 }
             });
+        }
 
-            if (!currentUser) {
-                modal.style.display = 'flex';
+        // ============================================
+        // DATABASE CONNECTION
+        // ============================================
+        async function connectToDatabase() {
+            try {
+                // Test connection
+                var { data, error } = await supabase.from('users').select('count').limit(1);
+                if (error && error.code !== 'PGRST116') throw error;
+
+                isOnline = true;
+                updateConnectionStatus(true);
+
+                // Load all users
+                await loadUsers();
+
+                // Setup realtime subscription
+                setupRealtimeSubscription();
+
+                // Check for existing user
+                checkExistingUser();
+
+            } catch(error) {
+                console.error('Connection error:', error);
+                isOnline = false;
+                updateConnectionStatus(false);
+                showToast('⚠️ وضع عدم الاتصال');
+                setupOfflineMode();
+            }
+        }
+
+        function updateConnectionStatus(online) {
+            var statusEl = document.getElementById('connectionStatus');
+            var textEl = document.getElementById('statusText');
+            var spinner = document.getElementById('statusSpinner');
+
+            if (online) {
+                statusEl.className = 'connection-status connection-online';
+                textEl.textContent = 'متصل';
+                spinner.style.display = 'none';
             } else {
-                modal.style.display = 'none';
-                updateUI();
-            }
-
-            setInterval(simulateActivity, 8000);
-        }
-
-        function createParticles() {
-            var container = document.getElementById('particles');
-            for (var i = 0; i < 20; i++) {
-                var particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 15 + 's';
-                container.appendChild(particle);
+                statusEl.className = 'connection-status connection-offline';
+                textEl.textContent = 'غير متصل';
+                spinner.style.display = 'none';
             }
         }
 
-        function loadData() {
-            var saved = localStorage.getItem('tasbihData');
-            if (saved) {
-                var data = JSON.parse(saved);
-                currentUser = data.currentUser;
-                users = data.users || generateFakeUsers();
-            } else {
-                users = generateFakeUsers();
+        function setupRealtimeSubscription() {
+            realtimeChannel = supabase
+                .channel('users_changes')
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'users' },
+                    function(payload) {
+                        handleRealtimeUpdate(payload);
+                    }
+                )
+                .subscribe();
+        }
+
+        function handleRealtimeUpdate(payload) {
+            if (payload.eventType === 'UPDATE') {
+                var updatedUser = payload.new;
+                var index = users.findIndex(function(u) { return u.id === updatedUser.id; });
+                if (index >= 0) {
+                    users[index] = updatedUser;
+                } else {
+                    users.push(updatedUser);
+                }
+
+                // Update global count
+                updateGlobalCount();
+
+                // Update UI if it's not the current user
+                if (!currentUser || updatedUser.id !== currentUser.id) {
+                    renderLeaderboard();
+                }
             }
         }
 
-        function saveData() {
-            localStorage.setItem('tasbihData', JSON.stringify({ currentUser: currentUser, users: users }));
-        }
-
-        function generateFakeUsers() {
-            var fakeUsers = [];
-            for (var i = 0; i < arabicNames.length; i++) {
-                fakeUsers.push({
-                    id: i + 1,
-                    name: arabicNames[i],
-                    todayCount: Math.floor(Math.random() * 500) + 50,
-                    totalCount: Math.floor(Math.random() * 50000) + 1000,
-                    streak: Math.floor(Math.random() * 30) + 1,
-                    trend: Math.random() > 0.3 ? 'up' : 'down'
-                });
-            }
-            return fakeUsers.sort(function(a, b) { return b.todayCount - a.todayCount; });
-        }
-
-        function setupUser() {
+        // ============================================
+        // USER MANAGEMENT
+        // ============================================
+        async function setupUser() {
             var nameInput = document.getElementById('userNameInput');
             var name = nameInput.value.trim();
             if (!name) {
@@ -633,26 +655,105 @@
                 return;
             }
 
-            currentUser = {
-                id: Date.now(),
-                name: name,
-                todayCount: 0,
-                totalCount: 0,
-                streak: 1,
-                lastDate: new Date().toDateString(),
-                hourlyCount: 0,
-                lastHour: new Date().getHours()
-            };
-            users.push(currentUser);
+            var startBtn = document.getElementById('startBtn');
+            startBtn.disabled = true;
+            startBtn.textContent = 'جاري التسجيل...';
 
-            document.getElementById('setupModal').style.display = 'none';
+            try {
+                if (isOnline && supabase) {
+                    // Check if name exists
+                    var { data: existing } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('name', name)
+                        .single();
 
-            saveData();
-            updateUI();
-            showToast('🌟 أهلاً ' + name + '! ابدأ رحلة الاستغفار');
+                    if (existing) {
+                        // Login existing user
+                        currentUser = existing;
+                        showToast('🌟 مرحباً بعودتك ' + name + '!');
+                    } else {
+                        // Create new user
+                        var newUser = {
+                            name: name,
+                            today_count: 0,
+                            total_count: 0,
+                            streak: 1,
+                            last_date: new Date().toDateString(),
+                            hourly_count: 0,
+                            last_hour: new Date().getHours(),
+                            trend: 'up'
+                        };
+
+                        var { data, error } = await supabase
+                            .from('users')
+                            .insert([newUser])
+                            .select()
+                            .single();
+
+                        if (error) throw error;
+                        currentUser = data;
+                        showToast('🌟 أهلاً ' + name + '! ابدأ رحلة الاستغفار');
+                    }
+                } else {
+                    // Offline mode
+                    currentUser = {
+                        id: 'local_' + Date.now(),
+                        name: name,
+                        today_count: 0,
+                        total_count: 0,
+                        streak: 1,
+                        last_date: new Date().toDateString(),
+                        hourly_count: 0,
+                        last_hour: new Date().getHours(),
+                        trend: 'up'
+                    };
+                    users.push(currentUser);
+                    showToast('🌟 أهلاً ' + name + '! (وضع عدم الاتصال)');
+                }
+
+                // Save to localStorage
+                localStorage.setItem('tasbihUser', JSON.stringify(currentUser));
+
+                document.getElementById('setupModal').style.display = 'none';
+                updateUI();
+
+            } catch(error) {
+                console.error('Setup error:', error);
+                showToast('❌ خطأ في التسجيل');
+            } finally {
+                startBtn.disabled = false;
+                startBtn.textContent = 'ابدأ الاستغفار';
+            }
         }
 
-        function addTasbih() {
+        async function checkExistingUser() {
+            var saved = localStorage.getItem('tasbihUser');
+            if (saved && isOnline) {
+                try {
+                    var parsed = JSON.parse(saved);
+                    var { data } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', parsed.id)
+                        .single();
+
+                    if (data) {
+                        currentUser = data;
+                        document.getElementById('setupModal').style.display = 'none';
+                        updateUI();
+                        showToast('🌟 مرحباً بعودتك ' + data.name + '!');
+                    }
+                } catch(e) {
+                    console.log('No existing user found');
+                }
+            }
+        }
+
+        // ============================================
+        // TASBIH FUNCTION
+        // ============================================
+        async function addTasbih() {
             if (!currentUser) {
                 document.getElementById('setupModal').style.display = 'flex';
                 return;
@@ -663,88 +764,127 @@
                 navigator.vibrate(15);
             }
 
-            currentUser.todayCount++;
-            currentUser.totalCount++;
-            currentUser.hourlyCount++;
+            // Update local
+            currentUser.today_count = (currentUser.today_count || 0) + 1;
+            currentUser.total_count = (currentUser.total_count || 0) + 1;
+            currentUser.hourly_count = (currentUser.hourly_count || 0) + 1;
 
-            var globalEl = document.getElementById('globalCount');
-            var global = parseInt(globalEl.textContent.replace(/,/g, ''));
-            globalEl.textContent = (global + 1).toLocaleString();
+            // Update UI immediately
+            updateUI();
+            document.getElementById('btnCounter').textContent = currentUser.today_count;
 
-            var userIndex = -1;
-            for (var i = 0; i < users.length; i++) {
-                if (users[i].id === currentUser.id) {
-                    userIndex = i;
-                    break;
+            // Update database
+            if (isOnline && supabase && !currentUser.id.toString().startsWith('local_')) {
+                try {
+                    await supabase
+                        .from('users')
+                        .update({
+                            today_count: currentUser.today_count,
+                            total_count: currentUser.total_count,
+                            hourly_count: currentUser.hourly_count,
+                            trend: 'up'
+                        })
+                        .eq('id', currentUser.id);
+                } catch(e) {
+                    console.error('Update error:', e);
                 }
             }
-            if (userIndex >= 0) {
-                users[userIndex].todayCount = currentUser.todayCount;
-                users[userIndex].totalCount = currentUser.totalCount;
-            }
 
-            saveData();
-            updateUI();
-
-            document.getElementById('btnCounter').textContent = currentUser.todayCount;
-
-            if (currentUser.todayCount % 10 === 0) {
+            // Milestone toast
+            if (currentUser.today_count % 10 === 0) {
                 var messages = ['🎉 أحسنت! 10 استغفارات','💪 استمر! أنت مُجتهد','✨ بارك الله فيك','🌟 تقترب من الهدف!','🔥 رائع! واصل التقدم'];
                 showToast(messages[Math.floor(Math.random() * messages.length)]);
                 if (vibrationEnabled && navigator.vibrate) {
                     navigator.vibrate([30, 50, 30]);
                 }
             }
+
+            // Save local
+            localStorage.setItem('tasbihUser', JSON.stringify(currentUser));
         }
 
+        // ============================================
+        // DATA LOADING
+        // ============================================
+        async function loadUsers() {
+            if (!isOnline || !supabase) return;
+
+            try {
+                var { data, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .order('today_count', { ascending: false });
+
+                if (error) throw error;
+                users = data || [];
+                updateGlobalCount();
+                renderLeaderboard();
+            } catch(e) {
+                console.error('Load users error:', e);
+            }
+        }
+
+        function updateGlobalCount() {
+            var total = users.reduce(function(sum, u) { return sum + (u.today_count || 0); }, 0);
+            document.getElementById('globalCount').textContent = total.toLocaleString();
+        }
+
+        // ============================================
+        // UI UPDATES
+        // ============================================
         function updateUI() {
             if (!currentUser) return;
-            document.getElementById('todayCount').textContent = currentUser.todayCount;
-            document.getElementById('streakCount').textContent = currentUser.streak;
-            document.getElementById('totalCount').textContent = currentUser.totalCount.toLocaleString();
-            document.getElementById('btnCounter').textContent = currentUser.todayCount;
+
+            document.getElementById('todayCount').textContent = currentUser.today_count || 0;
+            document.getElementById('streakCount').textContent = currentUser.streak || 1;
+            document.getElementById('totalCount').textContent = (currentUser.total_count || 0).toLocaleString();
+            document.getElementById('btnCounter').textContent = currentUser.today_count || 0;
             document.getElementById('userDisplayName').textContent = currentUser.name;
             document.getElementById('userAvatar').textContent = currentUser.name.charAt(0);
 
             var level = levels[0];
             for (var i = levels.length - 1; i >= 0; i--) {
-                if (currentUser.totalCount >= levels[i].min) {
+                if ((currentUser.total_count || 0) >= levels[i].min) {
                     level = levels[i];
                     break;
                 }
             }
             document.getElementById('userLevel').textContent = level.name;
 
-            var progress = Math.min((currentUser.todayCount / 100) * 100, 100);
+            var progress = Math.min(((currentUser.today_count || 0) / 100) * 100, 100);
             document.getElementById('progressFill').style.width = progress + '%';
-            document.getElementById('progressText').textContent = currentUser.todayCount + ' / 100';
-            document.getElementById('hourlyRate').textContent = currentUser.hourlyCount;
+            document.getElementById('progressText').textContent = (currentUser.today_count || 0) + ' / 100';
+            document.getElementById('hourlyRate').textContent = currentUser.hourly_count || 0;
 
-            var sorted = users.slice().sort(function(a, b) { return b.todayCount - a.todayCount; });
             var rank = -1;
-            for (var i = 0; i < sorted.length; i++) {
-                if (sorted[i].id === currentUser.id) {
+            for (var i = 0; i < users.length; i++) {
+                if (users[i].id === currentUser.id) {
                     rank = i + 1;
                     break;
                 }
             }
             document.getElementById('rankPosition').textContent = rank > 0 ? '#' + rank : '-';
 
-            renderLeaderboard(sorted);
+            renderLeaderboard();
         }
 
-        function renderLeaderboard(sortedUsers) {
+        function renderLeaderboard() {
             var container = document.getElementById('leaderboard');
             container.innerHTML = '';
-            for (var i = 0; i < Math.min(sortedUsers.length, 10); i++) {
-                var user = sortedUsers[i];
+
+            var sorted = users.slice().sort(function(a, b) {
+                return (b.today_count || 0) - (a.today_count || 0);
+            });
+
+            for (var i = 0; i < Math.min(sorted.length, 10); i++) {
+                var user = sorted[i];
                 var rank = i + 1;
                 var rankClass = 'rank-other';
                 if (rank === 1) rankClass = 'rank-1';
                 else if (rank === 2) rankClass = 'rank-2';
                 else if (rank === 3) rankClass = 'rank-3';
 
-                var isCurrent = user.id === currentUser.id;
+                var isCurrent = currentUser && user.id === currentUser.id;
 
                 var card = document.createElement('div');
                 card.className = 'leaderboard-card';
@@ -754,27 +894,55 @@
                     '<div style="flex:1;">' +
                     '<div style="font-weight:700; font-size:1rem;">' + user.name + (isCurrent ? ' 👤' : '') + '</div>' +
                     '<div style="color:var(--text-muted); font-size:0.8rem;">' +
-                    '<span>🔥 ' + user.streak + ' يوم</span>' +
+                    '<span>🔥 ' + (user.streak || 1) + ' يوم</span>' +
                     '</div></div>' +
                     '<div style="text-align:center;">' +
-                    '<div class="leaderboard-count">' + user.todayCount + '</div>' +
-                    '<span style="font-size:0.75rem;">' + (user.trend === 'up' ? '📈' : '📉') + '</span>' +
+                    '<div class="leaderboard-count">' + (user.today_count || 0) + '</div>' +
+                    '<span style="font-size:0.75rem;">' + ((user.trend || 'up') === 'up' ? '📈' : '📉') + '</span>' +
                     '</div>';
                 container.appendChild(card);
             }
         }
 
-        function simulateActivity() {
-            var randomIndex = Math.floor(Math.random() * users.length);
-            var randomUser = users[randomIndex];
-            if (randomUser && currentUser && randomUser.id !== currentUser.id) {
-                randomUser.todayCount += Math.floor(Math.random() * 3) + 1;
-                randomUser.trend = Math.random() > 0.4 ? 'up' : 'down';
-                var globalEl = document.getElementById('globalCount');
-                var global = parseInt(globalEl.textContent.replace(/,/g, ''));
-                globalEl.textContent = (global + Math.floor(Math.random() * 10) + 1).toLocaleString();
-                saveData();
+        // ============================================
+        // OFFLINE MODE
+        // ============================================
+        function setupOfflineMode() {
+            var saved = localStorage.getItem('tasbihUser');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                document.getElementById('setupModal').style.display = 'none';
                 updateUI();
+            }
+
+            // Generate fake users for offline
+            var arabicNames = ['أحمد','محمد','علي','عمر','خالد','فهد','سعد','ناصر','عبدالله','سلطان'];
+            users = arabicNames.map(function(name, i) {
+                return {
+                    id: i + 1,
+                    name: name,
+                    today_count: Math.floor(Math.random() * 500) + 50,
+                    total_count: Math.floor(Math.random() * 50000) + 1000,
+                    streak: Math.floor(Math.random() * 30) + 1,
+                    trend: Math.random() > 0.3 ? 'up' : 'down'
+                };
+            }).sort(function(a, b) { return b.today_count - a.today_count; });
+
+            updateGlobalCount();
+            renderLeaderboard();
+        }
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+        function createParticles() {
+            var container = document.getElementById('particles');
+            for (var i = 0; i < 20; i++) {
+                var particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                container.appendChild(particle);
             }
         }
 
@@ -787,6 +955,7 @@
             setTimeout(function() { toast.remove(); }, 3000);
         }
 
+        // Start
         window.addEventListener('load', init);
     </script>
 </body>
