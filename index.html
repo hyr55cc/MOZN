@@ -6,6 +6,9 @@
     <meta name="theme-color" content="#1a5f4a">
     <title>تسبيح - تطبيق الاستغفار التفاعلي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         :root {
             --primary: #1a5f4a;
@@ -456,15 +459,24 @@
 
     <script>
         // ============================================
-        // CONFIG - Replace this with your jsonstorage URL after first run
+        // FIREBASE CONFIG - Replace with your credentials
         // ============================================
-        var STORAGE_URL = localStorage.getItem('tasbihStorageUrl') || null;
+        var firebaseConfig = {
+            apiKey: "AIzaSyA-vhEg9EfxdsXcxj19T1y3mR_cJr60VYI",
+            authDomain: "mozn-8f9b0.firebaseapp.com",
+            databaseURL: "https://mozn-8f9b0-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "mozn-8f9b0",
+            storageBucket: "mozn-8f9b0.firebasestorage.app",
+            messagingSenderId: "242284204464",
+            appId: "1:242284204464:web:0de7aab8d9ab862a0d8675"
+        };
 
         var currentUser = null;
         var users = [];
         var vibrationEnabled = true;
         var isOnline = false;
-        var syncInterval = null;
+        var db = null;
+        var userRef = null;
 
         var levels = [
             { name: 'مبتدئ', min: 0 },
@@ -484,26 +496,23 @@
             createParticles();
             setupEventListeners();
 
-            // Try to load from localStorage first
-            var saved = localStorage.getItem('tasbihUser');
-            if (saved) {
-                currentUser = JSON.parse(saved);
+            // Check if Firebase is configured
+            if (firebaseConfig.apiKey === 'YOUR_API_KEY') {
+                showToast('⚠️ يرجى إعداد Firebase أولاً');
+                document.getElementById('statusText').textContent = 'غير مُعد';
+                setupOfflineMode();
+                return;
             }
 
-            // If we have a storage URL, try to sync
-            if (STORAGE_URL) {
-                syncData();
-                syncInterval = setInterval(syncData, 3000); // Sync every 3 seconds
-            } else {
-                // First time - create storage
-                createStorage();
-            }
-
-            if (!currentUser) {
-                document.getElementById('setupModal').style.display = 'flex';
-            } else {
-                document.getElementById('setupModal').style.display = 'none';
-                updateUI();
+            // Initialize Firebase
+            try {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                connectToDatabase();
+            } catch(e) {
+                console.error('Firebase init error:', e);
+                showToast('❌ خطأ في Firebase');
+                setupOfflineMode();
             }
         }
 
@@ -531,118 +540,53 @@
         }
 
         // ============================================
-        // JSONSTORAGE API
+        // DATABASE CONNECTION
         // ============================================
-        async function createStorage() {
-            try {
-                // Create initial data
-                var initialData = {
-                    users: [],
-                    lastUpdated: new Date().toISOString()
-                };
-
-                var response = await fetch('https://api.jsonstorage.net/v1/json', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(initialData)
-                });
-
-                if (response.ok) {
-                    var result = await response.json();
-                    STORAGE_URL = result.uri;
-                    localStorage.setItem('tasbihStorageUrl', STORAGE_URL);
-                    console.log('Storage created:', STORAGE_URL);
-                    showToast('✅ تم إنشاء قاعدة البيانات');
-                    syncInterval = setInterval(syncData, 3000);
-                }
-            } catch(e) {
-                console.error('Create storage error:', e);
-                showToast('⚠️ وضع عدم الاتصال');
-                setupOfflineMode();
-            }
-        }
-
-        async function syncData() {
-            if (!STORAGE_URL) return;
-
-            try {
-                // Get data from server
-                var response = await fetch(STORAGE_URL + '?t=' + Date.now());
-                if (!response.ok) throw new Error('Fetch failed');
-
-                var data = await response.json();
-                users = data.users || [];
-
-                // Update current user from server data
-                if (currentUser) {
-                    var serverUser = users.find(function(u) { return u.id === currentUser.id; });
-                    if (serverUser) {
-                        // Merge: keep higher counts
-                        currentUser.today_count = Math.max(currentUser.today_count || 0, serverUser.today_count || 0);
-                        currentUser.total_count = Math.max(currentUser.total_count || 0, serverUser.total_count || 0);
-                    }
-                }
-
-                isOnline = true;
-                updateConnectionStatus(true);
-                updateGlobalCount();
-                renderLeaderboard();
-
-                if (currentUser) updateUI();
-
-            } catch(e) {
-                console.log('Sync error:', e);
-                isOnline = false;
-                updateConnectionStatus(false);
-            }
-        }
-
-        async function saveToServer() {
-            if (!STORAGE_URL || !currentUser) return;
-
-            try {
-                // Update or add current user
-                var userIndex = users.findIndex(function(u) { return u.id === currentUser.id; });
-                if (userIndex >= 0) {
-                    users[userIndex] = currentUser;
-                } else {
-                    users.push(currentUser);
-                }
-
-                var data = {
-                    users: users,
-                    lastUpdated: new Date().toISOString()
-                };
-
-                var response = await fetch(STORAGE_URL, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
+        function connectToDatabase() {
+            var connectedRef = db.ref('.info/connected');
+            connectedRef.on('value', function(snap) {
+                if (snap.val() === true) {
                     isOnline = true;
                     updateConnectionStatus(true);
+                    showToast('✅ متصل بقاعدة البيانات');
+
+                    // Load all users
+                    loadUsers();
+
+                    // Check for existing user
+                    checkExistingUser();
+                } else {
+                    isOnline = false;
+                    updateConnectionStatus(false);
                 }
-            } catch(e) {
-                console.error('Save error:', e);
-                isOnline = false;
-                updateConnectionStatus(false);
+            });
+        }
+
+        function updateConnectionStatus(online) {
+            var el = document.getElementById('connectionStatus');
+            var text = document.getElementById('statusText');
+            if (online) {
+                el.className = 'connection-status connection-online';
+                text.textContent = 'متصل';
+            } else {
+                el.className = 'connection-status connection-offline';
+                text.textContent = 'غير متصل';
             }
         }
 
         // ============================================
         // USER MANAGEMENT
         // ============================================
-        async function setupUser() {
+        function setupUser() {
             var name = document.getElementById('userNameInput').value.trim();
             if (!name) {
                 showToast('❌ الرجاء إدخال اسمك');
                 return;
             }
 
+            var userId = 'user_' + Date.now();
             currentUser = {
-                id: 'user_' + Date.now(),
+                id: userId,
                 name: name,
                 today_count: 0,
                 total_count: 0,
@@ -650,21 +594,45 @@
                 last_date: new Date().toDateString(),
                 hourly_count: 0,
                 last_hour: new Date().getHours(),
-                trend: 'up'
+                trend: 'up',
+                timestamp: firebase.database.ServerValue.TIMESTAMP
             };
+
+            // Save to Firebase
+            if (isOnline && db) {
+                db.ref('users/' + userId).set(currentUser);
+                userRef = db.ref('users/' + userId);
+            }
 
             // Save locally
             localStorage.setItem('tasbihUser', JSON.stringify(currentUser));
-
-            // Save to server
-            await saveToServer();
 
             document.getElementById('setupModal').style.display = 'none';
             updateUI();
             showToast('🌟 أهلاً ' + name + '! ابدأ رحلة الاستغفار');
         }
 
-        async function addTasbih() {
+        function checkExistingUser() {
+            var saved = localStorage.getItem('tasbihUser');
+            if (saved && isOnline && db) {
+                var parsed = JSON.parse(saved);
+                db.ref('users/' + parsed.id).once('value', function(snapshot) {
+                    var data = snapshot.val();
+                    if (data) {
+                        currentUser = data;
+                        userRef = db.ref('users/' + currentUser.id);
+                        document.getElementById('setupModal').style.display = 'none';
+                        updateUI();
+                        showToast('🌟 مرحباً بعودتك ' + data.name + '!');
+                    }
+                });
+            }
+        }
+
+        // ============================================
+        // TASBIH FUNCTION
+        // ============================================
+        function addTasbih() {
             if (!currentUser) {
                 document.getElementById('setupModal').style.display = 'flex';
                 return;
@@ -679,12 +647,20 @@
             currentUser.today_count = (currentUser.today_count || 0) + 1;
             currentUser.total_count = (currentUser.total_count || 0) + 1;
             currentUser.hourly_count = (currentUser.hourly_count || 0) + 1;
+            currentUser.timestamp = firebase.database.ServerValue.TIMESTAMP;
+
+            // Save to Firebase
+            if (isOnline && db) {
+                db.ref('users/' + currentUser.id).update({
+                    today_count: currentUser.today_count,
+                    total_count: currentUser.total_count,
+                    hourly_count: currentUser.hourly_count,
+                    timestamp: currentUser.timestamp
+                });
+            }
 
             // Save locally
             localStorage.setItem('tasbihUser', JSON.stringify(currentUser));
-
-            // Save to server
-            await saveToServer();
 
             // Update UI
             updateUI();
@@ -698,6 +674,30 @@
                     navigator.vibrate([30, 50, 30]);
                 }
             }
+        }
+
+        // ============================================
+        // DATA LOADING
+        // ============================================
+        function loadUsers() {
+            if (!isOnline || !db) return;
+
+            db.ref('users').on('value', function(snapshot) {
+                var data = snapshot.val();
+                if (data) {
+                    users = Object.keys(data).map(function(key) {
+                        return data[key];
+                    });
+                    updateGlobalCount();
+                    renderLeaderboard();
+                    if (currentUser) updateUI();
+                }
+            });
+        }
+
+        function updateGlobalCount() {
+            var total = users.reduce(function(sum, u) { return sum + (u.today_count || 0); }, 0);
+            document.getElementById('globalCount').textContent = total.toLocaleString();
         }
 
         // ============================================
@@ -773,24 +773,17 @@
             }
         }
 
-        function updateGlobalCount() {
-            var total = users.reduce(function(sum, u) { return sum + (u.today_count || 0); }, 0);
-            document.getElementById('globalCount').textContent = total.toLocaleString();
-        }
-
-        function updateConnectionStatus(online) {
-            var el = document.getElementById('connectionStatus');
-            var text = document.getElementById('statusText');
-            if (online) {
-                el.className = 'connection-status connection-online';
-                text.textContent = 'متصل';
-            } else {
-                el.className = 'connection-status connection-offline';
-                text.textContent = 'غير متصل';
-            }
-        }
-
+        // ============================================
+        // OFFLINE MODE
+        // ============================================
         function setupOfflineMode() {
+            var saved = localStorage.getItem('tasbihUser');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                document.getElementById('setupModal').style.display = 'none';
+                updateUI();
+            }
+
             var arabicNames = ['أحمد','محمد','علي','عمر','خالد','فهد','سعد','ناصر','عبدالله','سلطان'];
             users = arabicNames.map(function(name, i) {
                 return {
@@ -802,6 +795,7 @@
                     trend: Math.random() > 0.3 ? 'up' : 'down'
                 };
             }).sort(function(a, b) { return b.today_count - a.today_count; });
+
             updateGlobalCount();
             renderLeaderboard();
         }
