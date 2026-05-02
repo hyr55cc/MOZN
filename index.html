@@ -774,11 +774,11 @@
                 // Load saved theme
                 loadTheme();
 
-                // Start bot simulation after 3 seconds
+                // Start after 3 seconds (no bots, only real users)
                 setTimeout(function() {
-                    createBots();
-                    startBotSimulation();
-                    showToast('🤖 المنافسون الوهميون انضموا!');
+                    createBots(); // Clean any old bots
+                    startBotSimulation(); // Disabled
+                    showToast('✅ المنافسة الحقيقية بدأت!');
                 }, 3000);
             } catch(e) {
                 console.error('Firebase init error:', e);
@@ -1173,38 +1173,9 @@
         }
 
         function startBotSimulation() {
+            // BOTS ARE DISABLED - only real users compete
             if (botInterval) clearInterval(botInterval);
-
-            botInterval = setInterval(function() {
-                if (!isOnline) return; // Only run when online
-
-                // Random bot adds tasbih
-                var randomBot = bots[Math.floor(Math.random() * bots.length)];
-                if (randomBot) {
-                    randomBot.today_count = (randomBot.today_count || 0) + Math.floor(Math.random() * 3) + 1;
-                    randomBot.total_count = (randomBot.total_count || 0) + Math.floor(Math.random() * 3) + 1;
-                    randomBot.trend = Math.random() > 0.3 ? 'up' : 'down';
-
-                    // Update in Firebase
-                    if (db) {
-                        db.ref('users/' + randomBot.id).update({
-                            today_count: randomBot.today_count,
-                            total_count: randomBot.total_count,
-                            trend: randomBot.trend
-                        });
-                    }
-
-                    // Show notification occasionally
-                    if (Math.random() > 0.7) {
-                        var messages = [
-                            '⚡ ' + randomBot.name + ' يستغفر الآن!',
-                            '📈 ' + randomBot.name + ' يقترب منك!',
-                            '🔥 ' + randomBot.name + ' مُكثر اليوم!'
-                        ];
-                        showToast(messages[Math.floor(Math.random() * messages.length)]);
-                    }
-                }
-            }, 5000); // Every 5 seconds
+            // No bot activity - competition is 100% real
         }
 
         function stopBotSimulation() {
