@@ -425,36 +425,60 @@
         .leaderboard-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 10px;
+            gap: 6px;
+            max-height: 70vh;
+            overflow-y: auto;
+            padding-right: 5px;
         }
         @media (min-width: 768px) {
-            .leaderboard-grid { grid-template-columns: repeat(2, 1fr); }
+            .leaderboard-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        }
+        .leaderboard-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        .leaderboard-grid::-webkit-scrollbar-track {
+            background: rgba(45, 138, 110, 0.1);
+            border-radius: 3px;
+        }
+        .leaderboard-grid::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+            border-radius: 3px;
         }
         .leaderboard-card {
             background: rgba(15, 46, 34, 0.85);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(45, 138, 110, 0.2);
-            border-radius: 16px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 10px 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            min-height: 50px;
+        }
+        .leaderboard-card.leaderboard-top {
+            padding: 12px 14px;
+            border: 2px solid var(--accent);
+            background: rgba(212, 168, 83, 0.1);
+        }
+        .leaderboard-card.leaderboard-normal {
+            padding: 8px 12px;
+            opacity: 0.9;
         }
         .rank-badge {
-            width: 40px; height: 40px;
-            border-radius: 10px;
+            width: 32px; height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 900;
-            font-size: 1rem;
+            font-size: 0.85rem;
             flex-shrink: 0;
         }
         .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #333; }
         .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: #333; }
         .rank-3 { background: linear-gradient(135deg, #CD7F32, #B87333); color: white; }
         .rank-other { background: var(--bg-card); color: var(--text-secondary); border: 1px solid rgba(45, 138, 110, 0.3); }
-        .leaderboard-count { font-size: 1.3rem; font-weight: 900; color: var(--accent); }
+        .leaderboard-count { font-size: 1.1rem; font-weight: 900; color: var(--accent); }
         .toast-container {
             position: fixed;
             top: 20px; left: 50%;
