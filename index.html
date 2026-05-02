@@ -737,17 +737,10 @@
         }
 
         function startBotSimulation() {
-            if (botInterval) {
-                clearInterval(botInterval);
-                botInterval = null;
-            }
-
-            console.log('Starting bot simulation...');
-
-            // Update every 3 seconds
-            botInterval = setInterval(function() {
+            // Use recursive setTimeout instead of setInterval (more reliable)
+            function botLoop() {
                 if (!isOnline || !db) {
-                    console.log('Offline, skipping bot update');
+                    setTimeout(botLoop, 5000);
                     return;
                 }
 
@@ -764,38 +757,35 @@
                     }
                 }
 
-                if (!bot) {
-                    console.log('Bot not found:', botIndex);
-                    return;
+                if (bot) {
+                    // Calculate add amount
+                    var addAmount = 1;
+                    if (config.level === 'high') addAmount = Math.floor(Math.random() * 3) + 2;
+                    else if (config.level === 'normal') addAmount = Math.floor(Math.random() * 2) + 1;
+                    else if (config.level === 'medium') addAmount = 1;
+                    else if (config.level === 'low') addAmount = Math.random() > 0.7 ? 1 : 0;
+
+                    if (addAmount > 0) {
+                        bot.today_count = (bot.today_count || 0) + addAmount;
+                        bot.total_count = (bot.total_count || 0) + addAmount;
+                        bot.trend = 'up';
+
+                        db.ref('users/' + bot.id).update({
+                            today_count: bot.today_count,
+                            total_count: bot.total_count,
+                            trend: bot.trend
+                        });
+                    }
                 }
 
-                // Calculate add amount
-                var addAmount = 1;
-                if (config.level === 'high') addAmount = Math.floor(Math.random() * 3) + 2;
-                else if (config.level === 'normal') addAmount = Math.floor(Math.random() * 2) + 1;
-                else if (config.level === 'medium') addAmount = 1;
-                else if (config.level === 'low') addAmount = Math.random() > 0.7 ? 1 : 0;
+                // Schedule next update (random delay between 2-5 seconds)
+                var nextDelay = Math.floor(Math.random() * 3000) + 2000;
+                setTimeout(botLoop, nextDelay);
+            }
 
-                if (addAmount > 0) {
-                    // Update local
-                    bot.today_count = (bot.today_count || 0) + addAmount;
-                    bot.total_count = (bot.total_count || 0) + addAmount;
-                    bot.trend = 'up';
-
-                    // Update Firebase
-                    db.ref('users/' + bot.id).update({
-                        today_count: bot.today_count,
-                        total_count: bot.total_count,
-                        trend: bot.trend
-                    }).then(function() {
-                        console.log('Bot updated:', bot.name, bot.today_count);
-                    }).catch(function(err) {
-                        console.error('Bot update error:', err);
-                    });
-                }
-            }, 3000);
-
-            console.log('Bot simulation started');
+            // Start the loop
+            botLoop();
+            console.log('Bot simulation started (recursive)');
         }
 
         // ============================================
