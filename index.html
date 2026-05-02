@@ -704,7 +704,7 @@
         </div>
 
         <div class="leaderboard-section">
-            <h2 class="section-title">🏆 لوحة المتصدرين - مباشر</h2>
+            <h2 class="section-title">🏆 لوحة المتصدرين - مباشر (<span id="userCount">0</span> مستخدم)</h2>
             <div class="leaderboard-grid" id="leaderboard"></div>
         </div>
     </div>
@@ -1139,6 +1139,7 @@
             });
 
             updateGlobalCount();
+            document.getElementById('userCount').textContent = users.length;
             renderLeaderboard();
         }
 
@@ -1208,6 +1209,7 @@
             }).sort(function(a, b) { return b.today_count - a.today_count; });
 
             updateGlobalCount();
+            document.getElementById('userCount').textContent = users.length;
             renderLeaderboard();
         }
 
