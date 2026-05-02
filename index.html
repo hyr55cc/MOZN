@@ -6,7 +6,6 @@
     <meta name="theme-color" content="#1a5f4a">
     <title>تسبيح - تطبيق الاستغفار التفاعلي</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
@@ -19,207 +18,6 @@
             --text-primary: #e8f5e9;
             --text-secondary: #a8c5b5;
             --text-muted: #6b9b82;
-        }
-
-        /* Theme: White Day */
-        body.theme-white {
-            --primary: #2d8a6e;
-            --primary-light: #4db892;
-            --accent: #c49420;
-            --bg-dark: #f0f0e8;
-            --bg-card: #ffffff;
-            --text-primary: #1a3d2e;
-            --text-secondary: #4a7c5e;
-            --text-muted: #8aaa9a;
-        }
-        body.theme-white .astaghfir-btn {
-            background: linear-gradient(145deg, #4db892, #2d8a6e);
-            box-shadow: 0 10px 40px rgba(45, 138, 110, 0.3), inset 0 -5px 20px rgba(0,0,0,0.1);
-        }
-        body.theme-white .astaghfir-btn::before {
-            border-color: #c49420;
-        }
-        body.theme-white .btn-counter {
-            background: #c49420;
-            color: #1a3d2e;
-        }
-        body.theme-white .stat-card,
-        body.theme-white .user-card,
-        body.theme-white .leaderboard-card,
-        body.theme-white .modal {
-            background: #ffffff;
-            border-color: rgba(45, 138, 110, 0.15);
-        }
-        body.theme-white .progress-bar {
-            background: rgba(45, 138, 110, 0.15);
-        }
-        body.theme-white .progress-fill {
-            background: linear-gradient(90deg, #4db892, #c49420);
-        }
-        body.theme-white .btn-primary {
-            background: linear-gradient(135deg, #4db892, #2d8a6e);
-        }
-        body.theme-white .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); }
-        body.theme-white .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); }
-        body.theme-white .rank-3 { background: linear-gradient(135deg, #CD7F32, #B87333); }
-        body.theme-white .rank-other { background: #f5f5f0; color: #4a7c5e; border-color: rgba(45, 138, 110, 0.2); }
-        body.theme-white .toast {
-            background: rgba(255, 255, 255, 0.95);
-            border-color: #c49420;
-            color: #1a3d2e;
-        }
-        body.theme-white .theme-selector {
-            background: rgba(255, 255, 255, 0.9);
-            border-color: rgba(45, 138, 110, 0.2);
-        }
-        body.theme-white .vibration-btn {
-            background: #ffffff;
-            border-color: rgba(45, 138, 110, 0.3);
-            color: #4a7c5e;
-        }
-        body.theme-white .vibration-btn.active {
-            color: #c49420;
-            border-color: #c49420;
-        }
-        body.theme-white .connection-online {
-            background: rgba(76, 175, 80, 0.15);
-        }
-        body.theme-white .connection-offline {
-            background: rgba(244, 67, 54, 0.15);
-        }
-
-        /* Theme: Black Night */
-        body.theme-black {
-            --primary: #3d7c6e;
-            --primary-light: #5a9e8e;
-            --accent: #e8c97a;
-            --bg-dark: #0a0a0a;
-            --bg-card: #1a1a1a;
-            --text-primary: #e8e8e8;
-            --text-secondary: #a0a0a0;
-            --text-muted: #666666;
-        }
-        body.theme-black .astaghfir-btn {
-            background: linear-gradient(145deg, #5a9e8e, #3d7c6e);
-            box-shadow: 0 10px 40px rgba(61, 124, 110, 0.3), inset 0 -5px 20px rgba(0,0,0,0.3);
-        }
-        body.theme-black .astaghfir-btn::before {
-            border-color: #e8c97a;
-        }
-        body.theme-black .btn-counter {
-            background: #e8c97a;
-            color: #0a0a0a;
-        }
-        body.theme-black .stat-card,
-        body.theme-black .user-card,
-        body.theme-black .leaderboard-card,
-        body.theme-black .modal {
-            background: #1a1a1a;
-            border-color: rgba(90, 158, 142, 0.2);
-        }
-        body.theme-black .progress-bar {
-            background: rgba(90, 158, 142, 0.2);
-        }
-        body.theme-black .progress-fill {
-            background: linear-gradient(90deg, #5a9e8e, #e8c97a);
-        }
-        body.theme-black .btn-primary {
-            background: linear-gradient(135deg, #5a9e8e, #3d7c6e);
-        }
-        body.theme-black .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a1a1a; }
-        body.theme-black .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: #1a1a1a; }
-        body.theme-black .rank-3 { background: linear-gradient(135deg, #CD7F32, #B87333); color: #ffffff; }
-        body.theme-black .rank-other { background: #2a2a2a; color: #a0a0a0; border-color: rgba(90, 158, 142, 0.3); }
-        body.theme-black .toast {
-            background: rgba(26, 26, 26, 0.95);
-            border-color: #e8c97a;
-            color: #e8e8e8;
-        }
-        body.theme-black .theme-selector {
-            background: rgba(26, 26, 26, 0.9);
-            border-color: rgba(90, 158, 142, 0.3);
-        }
-        body.theme-black .vibration-btn {
-            background: #1a1a1a;
-            border-color: rgba(90, 158, 142, 0.3);
-            color: #a0a0a0;
-        }
-        body.theme-black .vibration-btn.active {
-            color: #e8c97a;
-            border-color: #e8c97a;
-        }
-        body.theme-black .connection-online {
-            background: rgba(76, 175, 80, 0.2);
-        }
-        body.theme-black .connection-offline {
-            background: rgba(244, 67, 54, 0.2);
-        }
-
-        /* Theme: Blue Calm */
-        body.theme-blue {
-            --primary: #3a6d9c;
-            --primary-light: #5a9ed4;
-            --accent: #e8c97a;
-            --bg-dark: #0d1b2a;
-            --bg-card: #1b2838;
-            --text-primary: #e0e8f0;
-            --text-secondary: #8aa4c0;
-            --text-muted: #5a7a9a;
-        }
-        body.theme-blue .astaghfir-btn {
-            background: linear-gradient(145deg, #5a9ed4, #3a6d9c);
-            box-shadow: 0 10px 40px rgba(58, 109, 156, 0.4), inset 0 -5px 20px rgba(0,0,0,0.2);
-        }
-        body.theme-blue .astaghfir-btn::before {
-            border-color: #e8c97a;
-        }
-        body.theme-blue .btn-counter {
-            background: #e8c97a;
-            color: #0d1b2a;
-        }
-        body.theme-blue .stat-card,
-        body.theme-blue .user-card,
-        body.theme-blue .leaderboard-card,
-        body.theme-blue .modal {
-            background: #1b2838;
-            border-color: rgba(90, 158, 212, 0.2);
-        }
-        body.theme-blue .progress-bar {
-            background: rgba(90, 158, 212, 0.2);
-        }
-        body.theme-blue .progress-fill {
-            background: linear-gradient(90deg, #5a9ed4, #e8c97a);
-        }
-        body.theme-blue .btn-primary {
-            background: linear-gradient(135deg, #5a9ed4, #3a6d9c);
-        }
-        body.theme-blue .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #0d1b2a; }
-        body.theme-blue .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: #0d1b2a; }
-        body.theme-blue .rank-3 { background: linear-gradient(135deg, #CD7F32, #B87333); color: #ffffff; }
-        body.theme-blue .rank-other { background: #2a3a4a; color: #8aa4c0; border-color: rgba(90, 158, 212, 0.3); }
-        body.theme-blue .toast {
-            background: rgba(27, 40, 56, 0.95);
-            border-color: #e8c97a;
-            color: #e0e8f0;
-        }
-        body.theme-blue .theme-selector {
-            background: rgba(27, 40, 56, 0.9);
-            border-color: rgba(90, 158, 212, 0.3);
-        }
-        body.theme-blue .vibration-btn {
-            background: #1b2838;
-            border-color: rgba(90, 158, 212, 0.3);
-            color: #8aa4c0;
-        }
-        body.theme-blue .vibration-btn.active {
-            color: #e8c97a;
-            border-color: #e8c97a;
-        }
-        body.theme-blue .connection-online {
-            background: rgba(76, 175, 80, 0.2);
-        }
-        body.theme-blue .connection-offline {
-            background: rgba(244, 67, 54, 0.2);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html { height: 100%; overflow: hidden; }
@@ -426,7 +224,7 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: 6px;
-            max-height: 70vh;
+            max-height: 60vh;
             overflow-y: auto;
             padding-right: 5px;
         }
@@ -456,12 +254,10 @@
             min-height: 50px;
         }
         .leaderboard-card.leaderboard-top {
-            padding: 12px 14px;
             border: 2px solid var(--accent);
             background: rgba(212, 168, 83, 0.1);
         }
         .leaderboard-card.leaderboard-normal {
-            padding: 8px 12px;
             opacity: 0.9;
         }
         .rank-badge {
@@ -610,30 +406,11 @@
             border: 3px solid transparent;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
         }
-        .theme-btn:hover {
-            transform: scale(1.15);
-        }
+        .theme-btn:hover { transform: scale(1.15); }
         .theme-btn.active {
             border-color: var(--accent);
             box-shadow: 0 0 15px rgba(212, 168, 83, 0.5);
-        }
-        .theme-btn::after {
-            content: attr(data-label);
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .theme-btn:hover::after {
-            opacity: 1;
         }
         .theme-green { background: linear-gradient(135deg, #1a5f4a, #2d8a6e); }
         .theme-white { background: linear-gradient(135deg, #f5f5f0, #ffffff); border: 2px solid #ccc; }
@@ -662,6 +439,14 @@
     </div>
 
     <button class="vibration-btn active" id="vibrationBtn">📳</button>
+
+    <!-- Theme Selector -->
+    <div class="theme-selector" id="themeSelector">
+        <button class="theme-btn theme-green active" data-theme="green" title="أخضر"></button>
+        <button class="theme-btn theme-white" data-theme="white" title="أبيض"></button>
+        <button class="theme-btn theme-black" data-theme="black" title="أسود"></button>
+        <button class="theme-btn theme-blue" data-theme="blue" title="أزرق"></button>
+    </div>
 
     <header class="header">
         <h1>تَسْبِيح</h1>
@@ -728,22 +513,14 @@
         </div>
 
         <div class="leaderboard-section">
-            <h2 class="section-title">🏆 لوحة المتصدرين - مباشر (<span id="userCount">0</span> مستخدم نشط)</h2>
+            <h2 class="section-title">🏆 لوحة المتصدرين - مباشر (<span id="userCount">0</span> نشط)</h2>
             <div class="leaderboard-grid" id="leaderboard"></div>
         </div>
     </div>
 
-    <!-- Theme Selector -->
-    <div class="theme-selector" id="themeSelector">
-        <button class="theme-btn theme-green active" data-theme="green" data-label="أخضر" title="أخضر"></button>
-        <button class="theme-btn theme-white" data-theme="white" data-label="أبيض" title="أبيض"></button>
-        <button class="theme-btn theme-black" data-theme="black" data-label="أسود" title="أسود"></button>
-        <button class="theme-btn theme-blue" data-theme="blue" data-label="أزرق" title="أزرق"></button>
-    </div>
-
     <script>
         // ============================================
-        // FIREBASE CONFIG - Replace with your credentials
+        // FIREBASE CONFIG
         // ============================================
         var firebaseConfig = {
             apiKey: "AIzaSyA-vhEg9EfxdsXcxj19T1y3mR_cJr60VYI",
@@ -760,7 +537,6 @@
         var vibrationEnabled = true;
         var isOnline = false;
         var db = null;
-        var userRef = null;
 
         var levels = [
             { name: 'مبتدئ', min: 0 },
@@ -780,32 +556,19 @@
             createParticles();
             setupEventListeners();
 
-            // Check if Firebase is configured
             if (firebaseConfig.apiKey === 'YOUR_API_KEY') {
-                showToast('⚠️ يرجى إعداد Firebase أولاً');
+                showToast('⚠️ يرجى إعداد Firebase');
                 document.getElementById('statusText').textContent = 'غير مُعد';
-                setupOfflineMode();
                 return;
             }
 
-            // Initialize Firebase
             try {
                 firebase.initializeApp(firebaseConfig);
                 db = firebase.database();
                 connectToDatabase();
-
-                // Load saved theme
-                loadTheme();
-
-                // Start after 3 seconds - check Firebase first
-                setTimeout(function() {
-                    checkAndCreateBots(); // Check Firebase then create if needed
-                    startBotSimulation(); // Update existing bots only
-                }, 3000);
             } catch(e) {
-                console.error('Firebase init error:', e);
-                showToast('❌ خطأ في Firebase');
-                setupOfflineMode();
+                console.error('Firebase error:', e);
+                showToast('❌ خطأ في الاتصال');
             }
         }
 
@@ -813,15 +576,6 @@
             document.getElementById('startBtn').addEventListener('click', setupUser);
             document.getElementById('mainBtn').addEventListener('click', addTasbih);
             document.getElementById('mainBtn').addEventListener('touchstart', function(e) { e.preventDefault(); addTasbih(); });
-
-            // Theme switching
-            var themeBtns = document.querySelectorAll('.theme-btn');
-            themeBtns.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var theme = this.getAttribute('data-theme');
-                    setTheme(theme);
-                });
-            });
 
             document.getElementById('userNameInput').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') setupUser();
@@ -833,12 +587,46 @@
                 showToast(vibrationEnabled ? '✅ الاهتزاز مفعل' : '❌ الاهتزاز معطل');
             });
 
+            // Theme switching
+            var themeBtns = document.querySelectorAll('.theme-btn');
+            themeBtns.forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    var theme = this.getAttribute('data-theme');
+                    setTheme(theme);
+                });
+            });
+
             document.addEventListener('keydown', function(e) {
                 if (e.code === 'Space' && !e.repeat && e.target.tagName !== 'INPUT') {
                     e.preventDefault();
                     addTasbih();
                 }
             });
+        }
+
+        // ============================================
+        // THEME MANAGEMENT
+        // ============================================
+        function setTheme(theme) {
+            var body = document.body;
+            var btns = document.querySelectorAll('.theme-btn');
+
+            body.classList.remove('theme-white', 'theme-black', 'theme-blue');
+            if (theme !== 'green') body.classList.add('theme-' + theme);
+
+            btns.forEach(function(btn) {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-theme') === theme) btn.classList.add('active');
+            });
+
+            localStorage.setItem('tasbihTheme', theme);
+            var themeNames = { green: 'أخضر', white: 'أبيض', black: 'أسود', blue: 'أزرق' };
+            showToast('🎨 تم تغيير اللون إلى: ' + themeNames[theme]);
+        }
+
+        function loadTheme() {
+            var savedTheme = localStorage.getItem('tasbihTheme') || 'green';
+            setTheme(savedTheme);
         }
 
         // ============================================
@@ -850,13 +638,9 @@
                 if (snap.val() === true) {
                     isOnline = true;
                     updateConnectionStatus(true);
-                    showToast('✅ متصل بقاعدة البيانات');
-
-                    // Load all users
                     loadUsers();
-
-                    // Check for existing user
                     checkExistingUser();
+                    loadTheme();
                 } else {
                     isOnline = false;
                     updateConnectionStatus(false);
@@ -900,21 +684,16 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
-            // Save to Firebase
             if (isOnline && db) {
                 db.ref('users/' + userId).set(currentUser);
-                userRef = db.ref('users/' + userId);
             }
 
-            // Save locally
             localStorage.setItem('tasbihUser', JSON.stringify(currentUser));
 
             document.getElementById('setupModal').style.display = 'none';
             updateUI();
-            showToast('🌟 أهلاً ' + name + '! ابدأ رحلة الاستغفار');
+            showToast('🌟 أهلاً ' + name + '!');
         }
-
-
 
         function checkExistingUser() {
             var saved = localStorage.getItem('tasbihUser');
@@ -924,7 +703,6 @@
                     var data = snapshot.val();
                     if (data) {
                         currentUser = data;
-                        userRef = db.ref('users/' + currentUser.id);
                         document.getElementById('setupModal').style.display = 'none';
                         updateUI();
                         showToast('🌟 مرحباً بعودتك ' + data.name + '!');
@@ -942,41 +720,29 @@
                 return;
             }
 
-            // Vibration
-            if (vibrationEnabled && navigator.vibrate) {
-                navigator.vibrate(15);
-            }
+            if (vibrationEnabled && navigator.vibrate) navigator.vibrate(15);
 
-            // Update counts
             currentUser.today_count = (currentUser.today_count || 0) + 1;
             currentUser.total_count = (currentUser.total_count || 0) + 1;
             currentUser.hourly_count = (currentUser.hourly_count || 0) + 1;
-            currentUser.timestamp = firebase.database.ServerValue.TIMESTAMP;
 
-            // Save to Firebase
             if (isOnline && db) {
                 db.ref('users/' + currentUser.id).update({
                     today_count: currentUser.today_count,
                     total_count: currentUser.total_count,
-                    hourly_count: currentUser.hourly_count,
-                    timestamp: currentUser.timestamp
+                    hourly_count: currentUser.hourly_count
                 });
             }
 
-            // Save locally
             localStorage.setItem('tasbihUser', JSON.stringify(currentUser));
 
-            // Update UI
             updateUI();
             document.getElementById('btnCounter').textContent = currentUser.today_count;
 
-            // Milestones
             if (currentUser.today_count % 10 === 0) {
-                var messages = ['🎉 أحسنت! 10 استغفارات','💪 استمر! أنت مُجتهد','✨ بارك الله فيك','🌟 تقترب من الهدف!','🔥 رائع! واصل التقدم'];
+                var messages = ['🎉 أحسنت! 10 استغفارات','💪 استمر!','✨ بارك الله فيك','🌟 رائع!','🔥 واصل!'];
                 showToast(messages[Math.floor(Math.random() * messages.length)]);
-                if (vibrationEnabled && navigator.vibrate) {
-                    navigator.vibrate([30, 50, 30]);
-                }
+                if (vibrationEnabled && navigator.vibrate) navigator.vibrate([30, 50, 30]);
             }
         }
 
@@ -992,7 +758,14 @@
                     users = Object.keys(data).map(function(key) {
                         return data[key];
                     });
+
+                    // Sort by today_count descending
+                    users.sort(function(a, b) {
+                        return (b.today_count || 0) - (a.today_count || 0);
+                    });
+
                     updateGlobalCount();
+                    document.getElementById('userCount').textContent = users.length;
                     renderLeaderboard();
                     if (currentUser) updateUI();
                 }
@@ -1031,6 +804,7 @@
             document.getElementById('progressText').textContent = (currentUser.today_count || 0) + ' / 100';
             document.getElementById('hourlyRate').textContent = currentUser.hourly_count || 0;
 
+            // Calculate rank from SORTED users
             var rank = -1;
             for (var i = 0; i < users.length; i++) {
                 if (users[i].id === currentUser.id) {
@@ -1039,208 +813,56 @@
                 }
             }
             document.getElementById('rankPosition').textContent = rank > 0 ? '#' + rank : '-';
+
+            renderLeaderboard();
         }
 
         function renderLeaderboard() {
             var container = document.getElementById('leaderboard');
             container.innerHTML = '';
 
-            var sorted = users.slice().sort(function(a, b) {
-                return (b.today_count || 0) - (a.today_count || 0);
-            });
-
-            for (var i = 0; i < Math.min(sorted.length, 10); i++) {
-                var user = sorted[i];
+            // Show ALL users
+            for (var i = 0; i < users.length; i++) {
+                var user = users[i];
                 var rank = i + 1;
+                var isTop10 = rank <= 10;
                 var rankClass = 'rank-other';
                 if (rank === 1) rankClass = 'rank-1';
                 else if (rank === 2) rankClass = 'rank-2';
                 else if (rank === 3) rankClass = 'rank-3';
 
                 var isCurrent = currentUser && user.id === currentUser.id;
-
-                var card = document.createElement('div');
-                card.className = 'leaderboard-card';
-                if (isCurrent) card.style.border = '2px solid var(--accent)';
+                var isBot = user.id && user.id.startsWith('bot_');
 
                 var displayName = user.name || 'مستخدم';
                 var displayStreak = user.streak || 1;
                 var displayCount = user.today_count || 0;
                 var displayTrend = user.trend || 'up';
 
+                var card = document.createElement('div');
+
+                if (isTop10) {
+                    card.className = 'leaderboard-card leaderboard-top';
+                } else {
+                    card.className = 'leaderboard-card leaderboard-normal';
+                }
+
+                if (isCurrent) card.classList.add('current-user');
+
+                var botIndicator = isBot ? ' 🤖' : '';
+
                 card.innerHTML = '<div class="rank-badge ' + rankClass + '">' + rank + '</div>' +
                     '<div style="flex:1;">' +
-                    '<div style="font-weight:700; font-size:1rem;">' + displayName + (isCurrent ? ' 👤' : '') + '</div>' +
-                    '<div style="color:var(--text-muted); font-size:0.8rem;">' +
+                    '<div style="font-weight:700; font-size:0.95rem;">' + displayName + botIndicator + (isCurrent ? ' 👤' : '') + '</div>' +
+                    '<div style="color:var(--text-muted); font-size:0.75rem;">' +
                     '<span>🔥 ' + displayStreak + ' يوم</span>' +
                     '</div></div>' +
                     '<div style="text-align:center;">' +
                     '<div class="leaderboard-count">' + displayCount + '</div>' +
-                    '<span style="font-size:0.75rem;">' + (displayTrend === 'up' ? '📈' : '📉') + '</span>' +
+                    '<span style="font-size:0.7rem;">' + (displayTrend === 'up' ? '📈' : '📉') + '</span>' +
                     '</div>';
                 container.appendChild(card);
             }
-        }
-
-        // ============================================
-        // THEME MANAGEMENT
-        // ============================================
-        function setTheme(theme) {
-            var body = document.body;
-            var btns = document.querySelectorAll('.theme-btn');
-
-            // Remove all theme classes
-            body.classList.remove('theme-white', 'theme-black', 'theme-blue');
-
-            // Add new theme class if not default green
-            if (theme !== 'green') {
-                body.classList.add('theme-' + theme);
-            }
-
-            // Update active button
-            btns.forEach(function(btn) {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-theme') === theme) {
-                    btn.classList.add('active');
-                }
-            });
-
-            // Save preference
-            localStorage.setItem('tasbihTheme', theme);
-
-            // Show toast
-            var themeNames = { green: 'أخضر', white: 'أبيض', black: 'أسود', blue: 'أزرق' };
-            showToast('🎨 تم تغيير اللون إلى: ' + themeNames[theme]);
-        }
-
-        function loadTheme() {
-            var savedTheme = localStorage.getItem('tasbihTheme') || 'green';
-            setTheme(savedTheme);
-        }
-
-        // ============================================
-        // BOT SIMULATION - Fake competitors for motivation!
-        // ============================================
-        var botNames = [
-            // Boys names
-            'سالم','مبارك','عبدالرحمن','فيصل','بدر','سامي','ناصر','عبدالله','طلال','ماجد',
-            'خالد','فهد','سعد','نواف','بندر','تركي','جاسم','هيثم','عمر','يوسف',
-            // Girls names
-            'نورة','فاطمة','عائشة','سارة','مريم','لولوة','هدى','رنا','دانة','لمار',
-            'شيخة','موزة','فجر','الجوهرة','ريم','جواهر','حصة','مها','أمل','هديل'
-        ];
-        var bots = [];
-        var botInterval = null;
-
-        function createBots() {
-            // Shuffle and pick 10 random names
-            var shuffled = botNames.slice().sort(function() { return 0.5 - Math.random(); });
-            var selected = shuffled.slice(0, 10);
-
-            bots = selected.map(function(name, i) {
-                return {
-                    id: 'bot_' + i + '_' + Date.now(),
-                    name: name,
-                    today_count: Math.floor(Math.random() * 200) + 20,
-                    total_count: Math.floor(Math.random() * 20000) + 500,
-                    streak: Math.floor(Math.random() * 15) + 1,
-                    trend: 'up',
-                    isBot: true,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                };
-            });
-
-            // Add bots to users array
-            bots.forEach(function(bot) {
-                var exists = users.find(function(u) { return u.id === bot.id; });
-                if (!exists) {
-                    users.push(bot);
-
-                    // Save bot to Firebase
-                    if (db) {
-                        db.ref('users/' + bot.id).set(bot);
-                    }
-                }
-            });
-
-            updateGlobalCount();
-            document.getElementById('userCount').textContent = users.length;
-            renderLeaderboard();
-        }
-
-        function startBotSimulation() {
-            if (botInterval) clearInterval(botInterval);
-
-            // Update existing bots based on their level
-            botInterval = setInterval(function() {
-                if (!isOnline) return;
-
-                // Get current bots
-                var currentBots = users.filter(function(u) { 
-                    return u.id && u.id.startsWith('bot_'); 
-                });
-
-                if (currentBots.length === 0) return;
-
-                // Pick random bot to update
-                var randomBot = currentBots[Math.floor(Math.random() * currentBots.length)];
-                if (randomBot) {
-                    // Add tasbih based on bot level
-                    var addAmount = 1;
-                    if (randomBot.level === 'high') addAmount = Math.floor(Math.random() * 3) + 2; // 2-4
-                    else if (randomBot.level === 'normal') addAmount = Math.floor(Math.random() * 2) + 1; // 1-2
-                    else if (randomBot.level === 'medium') addAmount = 1;
-                    else if (randomBot.level === 'low') addAmount = Math.random() > 0.5 ? 1 : 0; // 0-1
-
-                    randomBot.today_count = (randomBot.today_count || 0) + addAmount;
-                    randomBot.total_count = (randomBot.total_count || 0) + addAmount;
-                    randomBot.trend = addAmount > 0 ? 'up' : 'down';
-
-                    // Update in Firebase
-                    if (db) {
-                        db.ref('users/' + randomBot.id).update({
-                            today_count: randomBot.today_count,
-                            total_count: randomBot.total_count,
-                            trend: randomBot.trend
-                        });
-                    }
-                }
-            }, 6000); // Every 6 seconds
-        }
-
-        function stopBotSimulation() {
-            if (botInterval) {
-                clearInterval(botInterval);
-                botInterval = null;
-            }
-        }
-
-        // ============================================
-        // OFFLINE MODE
-        // ============================================
-        function setupOfflineMode() {
-            var saved = localStorage.getItem('tasbihUser');
-            if (saved) {
-                currentUser = JSON.parse(saved);
-                document.getElementById('setupModal').style.display = 'none';
-                updateUI();
-            }
-
-            var arabicNames = ['أحمد','محمد','علي','عمر','خالد','فهد','سعد','ناصر','عبدالله','سلطان'];
-            users = arabicNames.map(function(name, i) {
-                return {
-                    id: 'fake_' + i,
-                    name: name,
-                    today_count: Math.floor(Math.random() * 500) + 50,
-                    total_count: Math.floor(Math.random() * 50000) + 1000,
-                    streak: Math.floor(Math.random() * 30) + 1,
-                    trend: Math.random() > 0.3 ? 'up' : 'down'
-                };
-            }).sort(function(a, b) { return b.today_count - a.today_count; });
-
-            updateGlobalCount();
-            document.getElementById('userCount').textContent = users.length;
-            renderLeaderboard();
         }
 
         // ============================================
