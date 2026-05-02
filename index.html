@@ -634,6 +634,7 @@
                 <input type="text" id="userNameInput" placeholder="اسمك" maxlength="20" autofocus>
             </div>
             <button class="btn-primary" id="startBtn">ابدأ الاستغفار</button>
+            <button class="btn-primary" id="cleanBtn" style="margin-top:10px;background:linear-gradient(135deg,#8B0000,#DC143C);">🧹 مسح البيانات القديمة</button>
         </div>
     </div>
 
@@ -788,6 +789,7 @@
 
         function setupEventListeners() {
             document.getElementById('startBtn').addEventListener('click', setupUser);
+            document.getElementById('cleanBtn').addEventListener('click', cleanOldData);
             document.getElementById('mainBtn').addEventListener('click', addTasbih);
             document.getElementById('mainBtn').addEventListener('touchstart', function(e) { e.preventDefault(); addTasbih(); });
 
@@ -889,6 +891,33 @@
             document.getElementById('setupModal').style.display = 'none';
             updateUI();
             showToast('🌟 أهلاً ' + name + '! ابدأ رحلة الاستغفار');
+        }
+
+        function cleanOldData() {
+            if (!confirm('هل تريد مسح جميع البيانات القديمة؟ سيتم الاحتفاظ فقط بأفضل 30 مستخدم.')) return;
+
+            if (db) {
+                db.ref('users').once('value', function(snapshot) {
+                    var data = snapshot.val();
+                    if (data) {
+                        var allUsers = Object.keys(data).map(function(key) {
+                            return { id: key, ...data[key] };
+                        });
+
+                        // Sort by today_count and keep top 30
+                        allUsers.sort(function(a, b) {
+                            return (b.today_count || 0) - (a.today_count || 0);
+                        });
+
+                        var toDelete = allUsers.slice(30);
+                        toDelete.forEach(function(u) {
+                            db.ref('users/' + u.id).remove();
+                        });
+
+                        showToast('✅ تم مسح ' + toDelete.length + ' مستخدم قديم');
+                    }
+                });
+            }
         }
 
         function checkExistingUser() {
