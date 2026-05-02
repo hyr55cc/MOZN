@@ -774,11 +774,11 @@
                 // Load saved theme
                 loadTheme();
 
-                // Start after 3 seconds (no bots, only real users)
+                // Start after 3 seconds - create bots only if needed
                 setTimeout(function() {
-                    createBots(); // Clean any old bots
-                    startBotSimulation(); // Disabled
-                    showToast('✅ المنافسة الحقيقية بدأت!');
+                    createBots(); // Create only if < 10 bots exist
+                    startBotSimulation(); // Update existing bots only
+                    showToast('✅ المنافسة بدأت! (10 بوتات + مستخدمين حقيقيين)');
                 }, 3000);
             } catch(e) {
                 console.error('Firebase init error:', e);
@@ -1173,9 +1173,36 @@
         }
 
         function startBotSimulation() {
-            // BOTS ARE DISABLED - only real users compete
             if (botInterval) clearInterval(botInterval);
-            // No bot activity - competition is 100% real
+
+            // Only update existing bots (max 10), never create new
+            botInterval = setInterval(function() {
+                if (!isOnline) return;
+
+                // Get current bots
+                var currentBots = users.filter(function(u) { 
+                    return u.id && u.id.startsWith('bot_'); 
+                });
+
+                if (currentBots.length === 0) return;
+
+                // Pick random bot to update
+                var randomBot = currentBots[Math.floor(Math.random() * currentBots.length)];
+                if (randomBot) {
+                    randomBot.today_count = (randomBot.today_count || 0) + Math.floor(Math.random() * 2) + 1;
+                    randomBot.total_count = (randomBot.total_count || 0) + Math.floor(Math.random() * 2) + 1;
+                    randomBot.trend = Math.random() > 0.3 ? 'up' : 'down';
+
+                    // Update in Firebase
+                    if (db) {
+                        db.ref('users/' + randomBot.id).update({
+                            today_count: randomBot.today_count,
+                            total_count: randomBot.total_count,
+                            trend: randomBot.trend
+                        });
+                    }
+                }
+            }, 8000); // Every 8 seconds
         }
 
         function stopBotSimulation() {
