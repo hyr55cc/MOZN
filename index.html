@@ -634,7 +634,6 @@
                 <input type="text" id="userNameInput" placeholder="اسمك" maxlength="20" autofocus>
             </div>
             <button class="btn-primary" id="startBtn">ابدأ الاستغفار</button>
-            <button class="btn-primary" id="cleanBtn" style="margin-top:10px;background:linear-gradient(135deg,#8B0000,#DC143C);">🧹 مسح البيانات القديمة</button>
         </div>
     </div>
 
@@ -788,7 +787,6 @@
 
         function setupEventListeners() {
             document.getElementById('startBtn').addEventListener('click', setupUser);
-            document.getElementById('cleanBtn').addEventListener('click', cleanOldData);
             document.getElementById('mainBtn').addEventListener('click', addTasbih);
             document.getElementById('mainBtn').addEventListener('touchstart', function(e) { e.preventDefault(); addTasbih(); });
 
@@ -892,32 +890,7 @@
             showToast('🌟 أهلاً ' + name + '! ابدأ رحلة الاستغفار');
         }
 
-        function cleanOldData() {
-            if (!confirm('هل تريد مسح جميع البيانات القديمة؟ سيتم الاحتفاظ فقط بأفضل 30 مستخدم.')) return;
 
-            if (db) {
-                db.ref('users').once('value', function(snapshot) {
-                    var data = snapshot.val();
-                    if (data) {
-                        var allUsers = Object.keys(data).map(function(key) {
-                            return { id: key, ...data[key] };
-                        });
-
-                        // Sort by today_count and keep top 30
-                        allUsers.sort(function(a, b) {
-                            return (b.today_count || 0) - (a.today_count || 0);
-                        });
-
-                        var toDelete = allUsers.slice(30);
-                        toDelete.forEach(function(u) {
-                            db.ref('users/' + u.id).remove();
-                        });
-
-                        showToast('✅ تم مسح ' + toDelete.length + ' مستخدم قديم');
-                    }
-                });
-            }
-        }
 
         function checkExistingUser() {
             var saved = localStorage.getItem('tasbihUser');
@@ -1174,7 +1147,7 @@
         function startBotSimulation() {
             if (botInterval) clearInterval(botInterval);
 
-            // Only update existing bots (max 10), never create new
+            // Update existing bots based on their level
             botInterval = setInterval(function() {
                 if (!isOnline) return;
 
@@ -1188,9 +1161,16 @@
                 // Pick random bot to update
                 var randomBot = currentBots[Math.floor(Math.random() * currentBots.length)];
                 if (randomBot) {
-                    randomBot.today_count = (randomBot.today_count || 0) + Math.floor(Math.random() * 2) + 1;
-                    randomBot.total_count = (randomBot.total_count || 0) + Math.floor(Math.random() * 2) + 1;
-                    randomBot.trend = Math.random() > 0.3 ? 'up' : 'down';
+                    // Add tasbih based on bot level
+                    var addAmount = 1;
+                    if (randomBot.level === 'high') addAmount = Math.floor(Math.random() * 3) + 2; // 2-4
+                    else if (randomBot.level === 'normal') addAmount = Math.floor(Math.random() * 2) + 1; // 1-2
+                    else if (randomBot.level === 'medium') addAmount = 1;
+                    else if (randomBot.level === 'low') addAmount = Math.random() > 0.5 ? 1 : 0; // 0-1
+
+                    randomBot.today_count = (randomBot.today_count || 0) + addAmount;
+                    randomBot.total_count = (randomBot.total_count || 0) + addAmount;
+                    randomBot.trend = addAmount > 0 ? 'up' : 'down';
 
                     // Update in Firebase
                     if (db) {
@@ -1201,7 +1181,7 @@
                         });
                     }
                 }
-            }, 8000); // Every 8 seconds
+            }, 6000); // Every 6 seconds
         }
 
         function stopBotSimulation() {
