@@ -509,6 +509,13 @@
                 firebase.initializeApp(firebaseConfig);
                 db = firebase.database();
                 connectToDatabase();
+
+                // Start bot simulation after 3 seconds
+                setTimeout(function() {
+                    createBots();
+                    startBotSimulation();
+                    showToast('🤖 المنافسون الوهميون انضموا!');
+                }, 3000);
             } catch(e) {
                 console.error('Firebase init error:', e);
                 showToast('❌ خطأ في Firebase');
@@ -770,6 +777,80 @@
                     '<span style="font-size:0.75rem;">' + ((user.trend || 'up') === 'up' ? '📈' : '📉') + '</span>' +
                     '</div>';
                 container.appendChild(card);
+            }
+        }
+
+        // ============================================
+        // BOT SIMULATION - Fake competitors for motivation!
+        // ============================================
+        var botNames = ['سالم','مبارك','عبدالرحمن','فيصل','بدر','سامي','ناصر','عبدالله','طلال','ماجد'];
+        var bots = [];
+        var botInterval = null;
+
+        function createBots() {
+            bots = botNames.map(function(name, i) {
+                return {
+                    id: 'bot_' + i,
+                    name: name,
+                    today_count: Math.floor(Math.random() * 200) + 20,
+                    total_count: Math.floor(Math.random() * 20000) + 500,
+                    streak: Math.floor(Math.random() * 15) + 1,
+                    trend: 'up',
+                    isBot: true
+                };
+            });
+
+            // Add bots to users array
+            bots.forEach(function(bot) {
+                var exists = users.find(function(u) { return u.id === bot.id; });
+                if (!exists) {
+                    users.push(bot);
+                }
+            });
+
+            updateGlobalCount();
+            renderLeaderboard();
+        }
+
+        function startBotSimulation() {
+            if (botInterval) clearInterval(botInterval);
+
+            botInterval = setInterval(function() {
+                if (!isOnline) return; // Only run when online
+
+                // Random bot adds tasbih
+                var randomBot = bots[Math.floor(Math.random() * bots.length)];
+                if (randomBot) {
+                    randomBot.today_count = (randomBot.today_count || 0) + Math.floor(Math.random() * 3) + 1;
+                    randomBot.total_count = (randomBot.total_count || 0) + Math.floor(Math.random() * 3) + 1;
+                    randomBot.trend = Math.random() > 0.3 ? 'up' : 'down';
+
+                    // Update in Firebase
+                    if (db) {
+                        db.ref('users/' + randomBot.id).update({
+                            today_count: randomBot.today_count,
+                            total_count: randomBot.total_count,
+                            trend: randomBot.trend
+                        });
+                    }
+
+                    // Show notification occasionally
+                    if (Math.random() > 0.7) {
+                        var messages = [
+                            '⚡ ' + randomBot.name + ' يستغفر الآن!',
+                            '📈 ' + randomBot.name + ' يقترب منك!',
+                            '🔥 ' + randomBot.name + ' مُكثر اليوم!'
+                        ];
+                        showToast(messages[Math.floor(Math.random() * messages.length)]);
+                    }
+                }
+            }, 5000); // Every 5 seconds
+        }
+
+        function stopBotSimulation() {
+            if (botInterval) {
+                clearInterval(botInterval);
+                botInterval = null;
             }
         }
 
