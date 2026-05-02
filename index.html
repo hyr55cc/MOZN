@@ -873,15 +873,20 @@
                 card.className = 'leaderboard-card';
                 if (isCurrent) card.style.border = '2px solid var(--accent)';
 
+                var displayName = user.name || 'مستخدم';
+                var displayStreak = user.streak || 1;
+                var displayCount = user.today_count || 0;
+                var displayTrend = user.trend || 'up';
+
                 card.innerHTML = '<div class="rank-badge ' + rankClass + '">' + rank + '</div>' +
                     '<div style="flex:1;">' +
-                    '<div style="font-weight:700; font-size:1rem;">' + user.name + (isCurrent ? ' 👤' : '') + '</div>' +
+                    '<div style="font-weight:700; font-size:1rem;">' + displayName + (isCurrent ? ' 👤' : '') + '</div>' +
                     '<div style="color:var(--text-muted); font-size:0.8rem;">' +
-                    '<span>🔥 ' + (user.streak || 1) + ' يوم</span>' +
+                    '<span>🔥 ' + displayStreak + ' يوم</span>' +
                     '</div></div>' +
                     '<div style="text-align:center;">' +
-                    '<div class="leaderboard-count">' + (user.today_count || 0) + '</div>' +
-                    '<span style="font-size:0.75rem;">' + ((user.trend || 'up') === 'up' ? '📈' : '📉') + '</span>' +
+                    '<div class="leaderboard-count">' + displayCount + '</div>' +
+                    '<span style="font-size:0.75rem;">' + (displayTrend === 'up' ? '📈' : '📉') + '</span>' +
                     '</div>';
                 container.appendChild(card);
             }
@@ -926,20 +931,32 @@
         // ============================================
         // BOT SIMULATION - Fake competitors for motivation!
         // ============================================
-        var botNames = ['سالم','مبارك','عبدالرحمن','فيصل','بدر','سامي','ناصر','عبدالله','طلال','ماجد'];
+        var botNames = [
+            // Boys names
+            'سالم','مبارك','عبدالرحمن','فيصل','بدر','سامي','ناصر','عبدالله','طلال','ماجد',
+            'خالد','فهد','سعد','نواف','بندر','تركي','جاسم','هيثم','عمر','يوسف',
+            // Girls names
+            'نورة','فاطمة','عائشة','سارة','مريم','لولوة','هدى','رنا','دانة','لمار',
+            'شيخة','موزة','فجر','الجوهرة','ريم','جواهر','حصة','مها','أمل','هديل'
+        ];
         var bots = [];
         var botInterval = null;
 
         function createBots() {
-            bots = botNames.map(function(name, i) {
+            // Shuffle and pick 10 random names
+            var shuffled = botNames.slice().sort(function() { return 0.5 - Math.random(); });
+            var selected = shuffled.slice(0, 10);
+
+            bots = selected.map(function(name, i) {
                 return {
-                    id: 'bot_' + i,
+                    id: 'bot_' + i + '_' + Date.now(),
                     name: name,
                     today_count: Math.floor(Math.random() * 200) + 20,
                     total_count: Math.floor(Math.random() * 20000) + 500,
                     streak: Math.floor(Math.random() * 15) + 1,
                     trend: 'up',
-                    isBot: true
+                    isBot: true,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
                 };
             });
 
@@ -948,6 +965,11 @@
                 var exists = users.find(function(u) { return u.id === bot.id; });
                 if (!exists) {
                     users.push(bot);
+
+                    // Save bot to Firebase
+                    if (db) {
+                        db.ref('users/' + bot.id).set(bot);
+                    }
                 }
             });
 
