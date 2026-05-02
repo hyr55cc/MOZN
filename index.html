@@ -684,46 +684,29 @@
         // BOT MANAGEMENT
         // ============================================
         function createBots() {
-            if (!db) return;
+            if (!db) {
+                console.log('No DB connection');
+                return;
+            }
 
-            // Check if bots already exist
+            console.log('Creating bots...');
+
+            // First, clean ALL old bots
             db.ref('users').once('value', function(snapshot) {
                 var data = snapshot.val() || {};
                 var allKeys = Object.keys(data);
-                var existingBots = allKeys.filter(function(key) {
-                    return key.startsWith('bot_');
+
+                // Remove ALL existing bots first
+                allKeys.forEach(function(key) {
+                    if (key.startsWith('bot_')) {
+                        db.ref('users/' + key).remove();
+                    }
                 });
 
-                console.log('Existing bots:', existingBots.length);
-
-                if (existingBots.length >= 12) {
-                    // Load existing bots into local array
-                    existingBots.forEach(function(key) {
-                        var bot = data[key];
-                        var exists = false;
-                        for (var j = 0; j < users.length; j++) {
-                            if (users[j].id === bot.id) {
-                                exists = true;
-                                break;
-                            }
-                        }
-                        if (!exists) users.push(bot);
-                    });
-
-                    console.log('Loaded existing bots');
-                    startBotSimulation();
-                    return;
-                }
-
-                // Remove old bots from Firebase
-                existingBots.forEach(function(key) {
-                    db.ref('users/' + key).remove();
-                });
-
-                // Remove old bots from local array
+                // Remove bots from local array
                 users = users.filter(function(u) { return !u.id || !u.id.startsWith('bot_'); });
 
-                // Create 12 bots
+                // Create 12 fresh bots
                 var now = Date.now();
                 for (var i = 0; i < botConfigs.length; i++) {
                     var config = botConfigs[i];
@@ -745,35 +728,48 @@
                     db.ref('users/' + bot.id).set(bot);
                 }
 
-                console.log('Created 12 new bots');
-                showToast('🤖 12 بوت جاهزين للمنافسة!');
+                console.log('Created 12 bots');
+                showToast('🤖 12 بوت جاهزين!');
+
+                // Start simulation immediately
                 startBotSimulation();
             });
         }
 
         function startBotSimulation() {
-            if (botInterval) clearInterval(botInterval);
+            if (botInterval) {
+                clearInterval(botInterval);
+                botInterval = null;
+            }
 
-            // Create a single interval that updates all bots
+            console.log('Starting bot simulation...');
+
+            // Update every 3 seconds
             botInterval = setInterval(function() {
-                if (!isOnline || !db) return;
+                if (!isOnline || !db) {
+                    console.log('Offline, skipping bot update');
+                    return;
+                }
 
-                // Update random bot
+                // Pick random bot
                 var botIndex = Math.floor(Math.random() * botConfigs.length);
                 var config = botConfigs[botIndex];
 
-                // Find bot in users array
+                // Find bot
                 var bot = null;
                 for (var i = 0; i < users.length; i++) {
-                    if (users[i].id && users[i].id.startsWith('bot_' + botIndex + '_')) {
+                    if (users[i].id && users[i].id.indexOf('bot_' + botIndex + '_') === 0) {
                         bot = users[i];
                         break;
                     }
                 }
 
-                if (!bot) return;
+                if (!bot) {
+                    console.log('Bot not found:', botIndex);
+                    return;
+                }
 
-                // Add tasbih based on level
+                // Calculate add amount
                 var addAmount = 1;
                 if (config.level === 'high') addAmount = Math.floor(Math.random() * 3) + 2;
                 else if (config.level === 'normal') addAmount = Math.floor(Math.random() * 2) + 1;
@@ -781,6 +777,7 @@
                 else if (config.level === 'low') addAmount = Math.random() > 0.7 ? 1 : 0;
 
                 if (addAmount > 0) {
+                    // Update local
                     bot.today_count = (bot.today_count || 0) + addAmount;
                     bot.total_count = (bot.total_count || 0) + addAmount;
                     bot.trend = 'up';
@@ -790,14 +787,15 @@
                         today_count: bot.today_count,
                         total_count: bot.total_count,
                         trend: bot.trend
+                    }).then(function() {
+                        console.log('Bot updated:', bot.name, bot.today_count);
+                    }).catch(function(err) {
+                        console.error('Bot update error:', err);
                     });
-
-                    // Show notification occasionally for high-level bots
-                    if (config.level === 'high' && Math.random() > 0.8) {
-                        showToast('⚡ ' + bot.name + ' يستغفر بقوة! (' + bot.today_count + ')');
-                    }
                 }
-            }, 2000); // Update every 2 seconds
+            }, 3000);
+
+            console.log('Bot simulation started');
         }
 
         // ============================================
