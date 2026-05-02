@@ -26,11 +26,66 @@
             --primary: #2d8a6e;
             --primary-light: #4db892;
             --accent: #c49420;
-            --bg-dark: #f5f5f0;
+            --bg-dark: #f0f0e8;
             --bg-card: #ffffff;
             --text-primary: #1a3d2e;
             --text-secondary: #4a7c5e;
             --text-muted: #8aaa9a;
+        }
+        body.theme-white .astaghfir-btn {
+            background: linear-gradient(145deg, #4db892, #2d8a6e);
+            box-shadow: 0 10px 40px rgba(45, 138, 110, 0.3), inset 0 -5px 20px rgba(0,0,0,0.1);
+        }
+        body.theme-white .astaghfir-btn::before {
+            border-color: #c49420;
+        }
+        body.theme-white .btn-counter {
+            background: #c49420;
+            color: #1a3d2e;
+        }
+        body.theme-white .stat-card,
+        body.theme-white .user-card,
+        body.theme-white .leaderboard-card,
+        body.theme-white .modal {
+            background: #ffffff;
+            border-color: rgba(45, 138, 110, 0.15);
+        }
+        body.theme-white .progress-bar {
+            background: rgba(45, 138, 110, 0.15);
+        }
+        body.theme-white .progress-fill {
+            background: linear-gradient(90deg, #4db892, #c49420);
+        }
+        body.theme-white .btn-primary {
+            background: linear-gradient(135deg, #4db892, #2d8a6e);
+        }
+        body.theme-white .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); }
+        body.theme-white .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); }
+        body.theme-white .rank-3 { background: linear-gradient(135deg, #CD7F32, #B87333); }
+        body.theme-white .rank-other { background: #f5f5f0; color: #4a7c5e; border-color: rgba(45, 138, 110, 0.2); }
+        body.theme-white .toast {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: #c49420;
+            color: #1a3d2e;
+        }
+        body.theme-white .theme-selector {
+            background: rgba(255, 255, 255, 0.9);
+            border-color: rgba(45, 138, 110, 0.2);
+        }
+        body.theme-white .vibration-btn {
+            background: #ffffff;
+            border-color: rgba(45, 138, 110, 0.3);
+            color: #4a7c5e;
+        }
+        body.theme-white .vibration-btn.active {
+            color: #c49420;
+            border-color: #c49420;
+        }
+        body.theme-white .connection-online {
+            background: rgba(76, 175, 80, 0.15);
+        }
+        body.theme-white .connection-offline {
+            background: rgba(244, 67, 54, 0.15);
         }
 
         /* Theme: Black Night */
@@ -38,23 +93,133 @@
             --primary: #3d7c6e;
             --primary-light: #5a9e8e;
             --accent: #e8c97a;
-            --bg-dark: #050505;
-            --bg-card: #111111;
-            --text-primary: #e0e0e0;
+            --bg-dark: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --text-primary: #e8e8e8;
             --text-secondary: #a0a0a0;
             --text-muted: #666666;
+        }
+        body.theme-black .astaghfir-btn {
+            background: linear-gradient(145deg, #5a9e8e, #3d7c6e);
+            box-shadow: 0 10px 40px rgba(61, 124, 110, 0.3), inset 0 -5px 20px rgba(0,0,0,0.3);
+        }
+        body.theme-black .astaghfir-btn::before {
+            border-color: #e8c97a;
+        }
+        body.theme-black .btn-counter {
+            background: #e8c97a;
+            color: #0a0a0a;
+        }
+        body.theme-black .stat-card,
+        body.theme-black .user-card,
+        body.theme-black .leaderboard-card,
+        body.theme-black .modal {
+            background: #1a1a1a;
+            border-color: rgba(90, 158, 142, 0.2);
+        }
+        body.theme-black .progress-bar {
+            background: rgba(90, 158, 142, 0.2);
+        }
+        body.theme-black .progress-fill {
+            background: linear-gradient(90deg, #5a9e8e, #e8c97a);
+        }
+        body.theme-black .btn-primary {
+            background: linear-gradient(135deg, #5a9e8e, #3d7c6e);
+        }
+        body.theme-black .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a1a1a; }
+        body.theme-black .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: #1a1a1a; }
+        body.theme-black .rank-3 { background: linear-gradient(135deg, #CD7F32, #B87333); color: #ffffff; }
+        body.theme-black .rank-other { background: #2a2a2a; color: #a0a0a0; border-color: rgba(90, 158, 142, 0.3); }
+        body.theme-black .toast {
+            background: rgba(26, 26, 26, 0.95);
+            border-color: #e8c97a;
+            color: #e8e8e8;
+        }
+        body.theme-black .theme-selector {
+            background: rgba(26, 26, 26, 0.9);
+            border-color: rgba(90, 158, 142, 0.3);
+        }
+        body.theme-black .vibration-btn {
+            background: #1a1a1a;
+            border-color: rgba(90, 158, 142, 0.3);
+            color: #a0a0a0;
+        }
+        body.theme-black .vibration-btn.active {
+            color: #e8c97a;
+            border-color: #e8c97a;
+        }
+        body.theme-black .connection-online {
+            background: rgba(76, 175, 80, 0.2);
+        }
+        body.theme-black .connection-offline {
+            background: rgba(244, 67, 54, 0.2);
         }
 
         /* Theme: Blue Calm */
         body.theme-blue {
-            --primary: #2c5f8a;
-            --primary-light: #4a8ab8;
-            --accent: #d4a853;
-            --bg-dark: #0a1520;
-            --bg-card: #0f1e2e;
-            --text-primary: #e8f0f5;
-            --text-secondary: #a8c0d5;
-            --text-muted: #6b8aa5;
+            --primary: #3a6d9c;
+            --primary-light: #5a9ed4;
+            --accent: #e8c97a;
+            --bg-dark: #0d1b2a;
+            --bg-card: #1b2838;
+            --text-primary: #e0e8f0;
+            --text-secondary: #8aa4c0;
+            --text-muted: #5a7a9a;
+        }
+        body.theme-blue .astaghfir-btn {
+            background: linear-gradient(145deg, #5a9ed4, #3a6d9c);
+            box-shadow: 0 10px 40px rgba(58, 109, 156, 0.4), inset 0 -5px 20px rgba(0,0,0,0.2);
+        }
+        body.theme-blue .astaghfir-btn::before {
+            border-color: #e8c97a;
+        }
+        body.theme-blue .btn-counter {
+            background: #e8c97a;
+            color: #0d1b2a;
+        }
+        body.theme-blue .stat-card,
+        body.theme-blue .user-card,
+        body.theme-blue .leaderboard-card,
+        body.theme-blue .modal {
+            background: #1b2838;
+            border-color: rgba(90, 158, 212, 0.2);
+        }
+        body.theme-blue .progress-bar {
+            background: rgba(90, 158, 212, 0.2);
+        }
+        body.theme-blue .progress-fill {
+            background: linear-gradient(90deg, #5a9ed4, #e8c97a);
+        }
+        body.theme-blue .btn-primary {
+            background: linear-gradient(135deg, #5a9ed4, #3a6d9c);
+        }
+        body.theme-blue .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #0d1b2a; }
+        body.theme-blue .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: #0d1b2a; }
+        body.theme-blue .rank-3 { background: linear-gradient(135deg, #CD7F32, #B87333); color: #ffffff; }
+        body.theme-blue .rank-other { background: #2a3a4a; color: #8aa4c0; border-color: rgba(90, 158, 212, 0.3); }
+        body.theme-blue .toast {
+            background: rgba(27, 40, 56, 0.95);
+            border-color: #e8c97a;
+            color: #e0e8f0;
+        }
+        body.theme-blue .theme-selector {
+            background: rgba(27, 40, 56, 0.9);
+            border-color: rgba(90, 158, 212, 0.3);
+        }
+        body.theme-blue .vibration-btn {
+            background: #1b2838;
+            border-color: rgba(90, 158, 212, 0.3);
+            color: #8aa4c0;
+        }
+        body.theme-blue .vibration-btn.active {
+            color: #e8c97a;
+            border-color: #e8c97a;
+        }
+        body.theme-blue .connection-online {
+            background: rgba(76, 175, 80, 0.2);
+        }
+        body.theme-blue .connection-offline {
+            background: rgba(244, 67, 54, 0.2);
         }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html { height: 100%; overflow: hidden; }
