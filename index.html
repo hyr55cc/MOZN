@@ -260,6 +260,36 @@
         .leaderboard-card.leaderboard-normal {
             opacity: 0.9;
         }
+        .leaderboard-card.current-user {
+            border: 2px solid var(--accent) !important;
+            background: rgba(212, 168, 83, 0.15) !important;
+            box-shadow: 0 0 15px rgba(212, 168, 83, 0.3);
+        }
+        .leaderboard-card.current-user .user-name {
+            color: var(--accent) !important;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(212, 168, 83, 0.5);
+        }
+
+        /* Flash effect for active user */
+        @keyframes flash-active {
+            0% { background: rgba(212, 168, 83, 0.3); box-shadow: 0 0 20px rgba(212, 168, 83, 0.6); }
+            50% { background: rgba(212, 168, 83, 0.5); box-shadow: 0 0 30px rgba(212, 168, 83, 0.8); }
+            100% { background: rgba(212, 168, 83, 0.15); box-shadow: 0 0 15px rgba(212, 168, 83, 0.3); }
+        }
+        .leaderboard-card.flash-active {
+            animation: flash-active 0.5s ease-out;
+        }
+
+        /* Pulse effect for counter increase */
+        @keyframes pulse-count {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); color: #fff; }
+            100% { transform: scale(1); }
+        }
+        .pulse-count {
+            animation: pulse-count 0.3s ease-out;
+        }
         .rank-badge {
             width: 32px; height: 32px;
             border-radius: 8px;
@@ -770,6 +800,9 @@
                         bot.total_count = (bot.total_count || 0) + addAmount;
                         bot.trend = 'up';
 
+                        // Flash the bot's card
+                        flashUserCard(bot.id);
+
                         db.ref('users/' + bot.id).update({
                             today_count: bot.today_count,
                             total_count: bot.total_count,
@@ -863,6 +896,9 @@
             }
 
             localStorage.setItem('tasbihUser', JSON.stringify(currentUser));
+
+            // Flash the user's card
+            flashUserCard(currentUser.id);
 
             updateUI();
             document.getElementById('btnCounter').textContent = currentUser.today_count;
@@ -968,28 +1004,69 @@
                 var displayTrend = user.trend || 'up';
 
                 var card = document.createElement('div');
+                card.id = 'user-card-' + user.id; // Unique ID for each card
 
+                // Base class
                 if (isTop10) {
                     card.className = 'leaderboard-card leaderboard-top';
                 } else {
                     card.className = 'leaderboard-card leaderboard-normal';
                 }
 
-                if (isCurrent) card.classList.add('current-user');
+                // Highlight current user
+                if (isCurrent) {
+                    card.classList.add('current-user');
+                }
 
                 var botIndicator = isBot ? ' 🤖' : '';
+                var currentIndicator = isCurrent ? ' 👤' : '';
+
+                // Name styling - highlight current user
+                var nameClass = isCurrent ? 'user-name' : '';
+                var nameStyle = isCurrent ? 'color:var(--accent);font-weight:900;text-shadow:0 0 10px rgba(212,168,83,0.5);' : '';
 
                 card.innerHTML = '<div class="rank-badge ' + rankClass + '">' + rank + '</div>' +
                     '<div style="flex:1;">' +
-                    '<div style="font-weight:700; font-size:0.95rem;">' + displayName + botIndicator + (isCurrent ? ' 👤' : '') + '</div>' +
+                    '<div class="' + nameClass + '" style="font-weight:700; font-size:0.95rem;' + nameStyle + '">' + displayName + botIndicator + currentIndicator + '</div>' +
                     '<div style="color:var(--text-muted); font-size:0.75rem;">' +
                     '<span>🔥 ' + displayStreak + ' يوم</span>' +
                     '</div></div>' +
                     '<div style="text-align:center;">' +
-                    '<div class="leaderboard-count">' + displayCount + '</div>' +
+                    '<div class="leaderboard-count" id="count-' + user.id + '">' + displayCount + '</div>' +
                     '<span style="font-size:0.7rem;">' + (displayTrend === 'up' ? '📈' : '📉') + '</span>' +
                     '</div>';
                 container.appendChild(card);
+            }
+        }
+
+        // Function to flash a user's card when they add tasbih
+        function flashUserCard(userId) {
+            var card = document.getElementById('user-card-' + userId);
+            var countEl = document.getElementById('count-' + userId);
+
+            if (card) {
+                // Remove existing flash class
+                card.classList.remove('flash-active');
+                // Force reflow
+                void card.offsetWidth;
+                // Add flash class
+                card.classList.add('flash-active');
+
+                // Remove after animation
+                setTimeout(function() {
+                    card.classList.remove('flash-active');
+                }, 500);
+            }
+
+            if (countEl) {
+                // Pulse the counter
+                countEl.classList.remove('pulse-count');
+                void countEl.offsetWidth;
+                countEl.classList.add('pulse-count');
+
+                setTimeout(function() {
+                    countEl.classList.remove('pulse-count');
+                }, 300);
             }
         }
 
