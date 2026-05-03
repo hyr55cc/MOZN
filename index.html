@@ -622,19 +622,6 @@
             }
         }
 
-        // Global function to start everything after connection
-        function onConnected() {
-            console.log('Connected! Starting bots...');
-            loadUsers();
-            checkExistingUser();
-            loadTheme();
-
-            // Create bots after connection is confirmed
-            setTimeout(function() {
-                createBots();
-            }, 1000);
-        }
-
         function setupEventListeners() {
             document.getElementById('startBtn').addEventListener('click', setupUser);
             document.getElementById('mainBtn').addEventListener('click', addTasbih);
