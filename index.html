@@ -271,14 +271,14 @@
             text-shadow: 0 0 10px rgba(212, 168, 83, 0.5);
         }
 
-        /* Flash effect for active user */
+        /* Flash effect - white light */
         @keyframes flash-active {
-            0% { background: rgba(212, 168, 83, 0.3); box-shadow: 0 0 20px rgba(212, 168, 83, 0.6); }
-            50% { background: rgba(212, 168, 83, 0.5); box-shadow: 0 0 30px rgba(212, 168, 83, 0.8); }
-            100% { background: rgba(212, 168, 83, 0.15); box-shadow: 0 0 15px rgba(212, 168, 83, 0.3); }
+            0% { background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 30px rgba(255, 255, 255, 0.8); border-color: #fff; }
+            50% { background: rgba(255, 255, 255, 1); box-shadow: 0 0 50px rgba(255, 255, 255, 1); border-color: #fff; }
+            100% { background: rgba(15, 46, 34, 0.85); box-shadow: 0 0 15px rgba(45, 138, 110, 0.3); border-color: rgba(45, 138, 110, 0.2); }
         }
         .leaderboard-card.flash-active {
-            animation: flash-active 0.5s ease-out;
+            animation: flash-active 0.6s ease-out;
         }
 
         /* Pulse effect for counter increase */
@@ -902,9 +902,6 @@
 
             localStorage.setItem('tasbihUser', JSON.stringify(currentUser));
 
-            // Flash the user's card
-            flashUserCard(currentUser.id);
-
             updateUI();
             document.getElementById('btnCounter').textContent = currentUser.today_count;
 
@@ -921,12 +918,32 @@
         function loadUsers() {
             if (!isOnline || !db) return;
 
+            // Store previous counts to detect changes
+            var previousCounts = {};
+
             db.ref('users').on('value', function(snapshot) {
                 var data = snapshot.val();
                 if (data) {
-                    users = Object.keys(data).map(function(key) {
+                    var newUsers = Object.keys(data).map(function(key) {
                         return data[key];
                     });
+
+                    // Check for count changes and flash cards
+                    newUsers.forEach(function(user) {
+                        var userId = user.id;
+                        var newCount = user.today_count || 0;
+                        var oldCount = previousCounts[userId] || 0;
+
+                        // If count increased, flash the card
+                        if (newCount > oldCount) {
+                            flashUserCard(userId);
+                        }
+
+                        // Update previous count
+                        previousCounts[userId] = newCount;
+                    });
+
+                    users = newUsers;
 
                     // Sort by today_count descending
                     users.sort(function(a, b) {
@@ -1052,17 +1069,23 @@
             var countEl = document.getElementById('count-' + userId);
 
             if (card) {
+                // Remove existing flash first
+                card.classList.remove('flash-active');
+                // Force reflow
+                void card.offsetWidth;
                 // Add flash class
                 card.classList.add('flash-active');
 
                 // Remove after animation
                 setTimeout(function() {
                     if (card) card.classList.remove('flash-active');
-                }, 500);
+                }, 600);
             }
 
             if (countEl) {
                 // Pulse the counter
+                countEl.classList.remove('pulse-count');
+                void countEl.offsetWidth;
                 countEl.classList.add('pulse-count');
 
                 setTimeout(function() {
