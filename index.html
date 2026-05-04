@@ -902,11 +902,11 @@
         // ============================================
         // DATA LOADING
         // ============================================
+        // Store previous counts to detect changes (global variable)
+        var previousCounts = {};
+
         function loadUsers() {
             if (!isOnline || !db) return;
-
-            // Store previous counts to detect changes
-            var previousCounts = {};
 
             db.ref('users').on('value', function(snapshot) {
                 var data = snapshot.val();
@@ -922,7 +922,7 @@
                         var oldCount = previousCounts[userId] || 0;
 
                         // If count increased, flash the card
-                        if (newCount > oldCount) {
+                        if (newCount > oldCount && oldCount > 0) {
                             flashUserCard(userId);
                         }
 
